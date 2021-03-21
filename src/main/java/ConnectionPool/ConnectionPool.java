@@ -1,11 +1,12 @@
 package ConnectionPool;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
-public interface BasicConnectionPool {
-    Connection getConnection();
+public interface ConnectionPool {
+    Connection getConnection() throws SQLException;
 
-    boolean releaseConnection();
+    boolean releaseConnection(Connection connection);
 
     String getConnectionUrl();
 

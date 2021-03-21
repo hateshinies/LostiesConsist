@@ -1,41 +1,91 @@
 package repository;
 
+import domain.Owner;
 import specification.SqlSpecification;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class RepositoryImpl implements Repository<Object> {
-    private List<Object> objects = new ArrayList<>();
+public class OwnerRepository implements Repository<Owner> {
 
-    public RepositoryImpl(List<Object> objects) {
-        this.objects = objects;
+    private Connection connection;
+    private List<Owner> owners = new ArrayList<>();
+    String GET_ALL_QUERY = "select * from owner;";
+    String GET_ONE_QUERY = "select * from owner where ownerId = ?;";
+    String CREATE_QUERY = "insert into owner values(?,?,?,?);";
+    String DELETE_QUERY = "delete from owner where ownerId = ?;";
+
+
+    public OwnerRepository(Connection connection) {
+        this.connection = connection;
+    }
+
+
+    @Override
+    public void create(Owner owner) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(CREATE_QUERY);
+            preparedStatement.setLong(1, owner.getOwnerId());
+            preparedStatement.setString(2, owner.getName());
+            preparedStatement.setString(3, owner.getPhone());
+            preparedStatement.setString(4, owner.getEmail());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            System.out.println("rs: " + resultSet.toString());
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     @Override
-    public void create(Object entity) {
-//sql
-    }
-
-    @Override
-    public void update(Object entity) {
+    public void update(Owner owner) {
 
     }
 
     @Override
-    public void delete(Object entity) {
-
+    public void delete(Owner owner) {
+        try {
+            Long ownerId = owner.getOwnerId();
+            PreparedStatement preparedStatement = connection.prepareStatement(DELETE_QUERY);
+            preparedStatement.setLong(1, ownerId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            System.out.println("rs: " + resultSet.toString());
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     @Override
-    public List<Object> getAll() {
-        return objects;
+    public List<Owner> getAll() {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(GET_ALL_QUERY);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                long id = resultSet.getLong("ownerId");
+                String name = resultSet.getString("name");
+                String phone = resultSet.getString("phone");
+                String email = resultSet.getString("email");
+
+                Owner owner = new Owner();
+                owner.setOwnerId(id);
+                owner.setName(name);
+                owner.setPhone(phone);
+                owner.setEmail(email);
+                owners.add(owner);
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return owners;
     }
 
     @Override
-    public Optional<Object> query(SqlSpecification sqlSpecification) {
-//        return Optional.ofNullable(objects.get(0));
+    public Optional<Owner> query(SqlSpecification sqlSpecification) {
+//        return Optional.ofNullable(owners.get(sqlSpecification.toSQLClauses().indexOf()));
         return null;
     }
 }

@@ -3,6 +3,7 @@ package repository;
 import specification.SqlSpecification;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface Repository<T> {
     void create(T entity);
@@ -13,5 +14,5 @@ public interface Repository<T> {
 
     List<T> getAll();
 
-    List query(SqlSpecification sqlSpecification);
+    Optional<T> query(SqlSpecification sqlSpecification);
 }
