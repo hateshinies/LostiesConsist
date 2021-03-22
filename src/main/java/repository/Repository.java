@@ -1,7 +1,5 @@
 package repository;
 
-import specification.SqlSpecification;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -14,5 +12,5 @@ public interface Repository<T> {
 
     List<T> getAll();
 
-    Optional<T> query(SqlSpecification sqlSpecification);
+    Optional<T> getById(Integer id);
 }

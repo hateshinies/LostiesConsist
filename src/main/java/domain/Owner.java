@@ -1,7 +1,9 @@
 package domain;
 
+import java.lang.reflect.Array;
+
 public class Owner {
-    Long ownerId;
+    Integer ownerId;
     String name;
     String phone;
     String email;
@@ -9,11 +11,22 @@ public class Owner {
     public Owner() {
     }
 
-    public Long getOwnerId() {
+    public Owner(Integer ownerId, String name, String phone, String email) {
+        this.ownerId = ownerId;
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+    }
+
+    public void toFieldsArray(Array<String> fields){
+
+    }
+
+    public Integer getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Integer ownerId) {
         this.ownerId = ownerId;
     }
 
@@ -41,7 +54,7 @@ public class Owner {
         this.email = email;
     }
 
-    public boolean hasOwnerId(long ownerId) {
+    public boolean hasOwnerId(Integer ownerId) {
         return this.ownerId.equals(ownerId);
     }
 }

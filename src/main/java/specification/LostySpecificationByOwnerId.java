@@ -4,9 +4,9 @@ import domain.Owner;
 
 public class LostySpecificationByOwnerId implements Specification, SqlSpecification {
 
-    long ownerId;
+    int ownerId;
 
-    public LostySpecificationByOwnerId(long ownerId) {
+    public LostySpecificationByOwnerId(int ownerId) {
         super();
         this.ownerId = ownerId;
     }
