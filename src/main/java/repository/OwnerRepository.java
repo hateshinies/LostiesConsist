@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Optional.of;
-
 public class OwnerRepository implements Repository<Owner> {
 
     private Connection connection;
@@ -30,12 +28,24 @@ public class OwnerRepository implements Repository<Owner> {
     @Override
     public void create(Owner owner) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(CREATE_QUERY);
-            preparedStatement.setInt(1, owner.getOwnerId());
+            PreparedStatement statement = connection.prepareStatement(CREATE_QUERY);
+            /*      preparedStatement.setInt(1, owner.getOwnerId());
             preparedStatement.setString(2, owner.getName());
             preparedStatement.setString(3, owner.getPhone());
-            preparedStatement.setString(4, owner.getEmail());
-            preparedStatement.executeQuery();
+            preparedStatement.setString(4, owner.getEmail());*/
+            /*            String[] array = new String[]{
+                    owner.getOwnerId().toString(),
+                    owner.getName(),
+                    owner.getPhone(),
+                    owner.getEmail()};*/
+            String[] fields = owner.getFieldsArray();
+            for (int i = 0; i < fields.length; i++) {
+                if (isNumeric(fields[i]))
+                    statement.setInt(i + 1, Integer.parseInt(fields[i]));
+                else
+                    statement.setString(i + 1, fields[i]);
+            }
+            statement.executeQuery();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -44,14 +54,21 @@ public class OwnerRepository implements Repository<Owner> {
     @Override
     public void update(Owner owner) {
         try {
-            //
-            Integer ownerId = owner.getOwnerId();
-            PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_QUERY);
-            preparedStatement.setString(1, owner.getName());
-            preparedStatement.setString(2, owner.getPhone());
-            preparedStatement.setString(3, owner.getEmail());
-            preparedStatement.setInt(4, ownerId);
-            preparedStatement.executeQuery();
+            PreparedStatement statement = connection.prepareStatement(UPDATE_QUERY);
+            String[] fields = owner.getFieldsArray();
+            for (int i = 0; i < fields.length; i++) {
+                if (isNumeric(fields[i]))
+                    /*первым идет ID сущности, его ставим в конец @statement, исходя из синтаксиса sql*/
+                    statement.setInt(fields.length, Integer.parseInt(fields[i]));
+                else
+                    /* остальные элементы @fields ставим по порядку*/
+                    statement.setString(i, fields[i]);
+            }
+            /*statement.setString(1, owner.getName());
+            statement.setString(2, owner.getPhone());
+            statement.setString(3, owner.getEmail());
+            statement.setInt(4, ownerId);*/
+            statement.executeQuery();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -60,11 +77,15 @@ public class OwnerRepository implements Repository<Owner> {
     @Override
     public void delete(Owner owner) {
         try {
-            Integer ownerId = owner.getOwnerId();
-            PreparedStatement preparedStatement = connection.prepareStatement(DELETE_QUERY);
-            preparedStatement.setInt(1, ownerId);
-            preparedStatement.executeQuery();
-        } catch (SQLException throwables) {
+            String[] fields = owner.getFieldsArray();
+            PreparedStatement statement = connection.prepareStatement(DELETE_QUERY);
+            //находим id(он идет первым в массиве)
+            if (!isNumeric(fields[0]))
+                throw new Exception("ownerId not found in fieldsArray");
+            int ownerId = Integer.parseInt(fields[0]);
+            statement.setInt(1, ownerId);
+            statement.executeQuery();
+        } catch (Exception throwables) {
             throwables.printStackTrace();
         }
     }
@@ -101,16 +122,18 @@ public class OwnerRepository implements Repository<Owner> {
             PreparedStatement preparedStatement = connection.prepareStatement(GET_ONE_QUERY);
             preparedStatement.setInt(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
-            //учесть случай, если такого объекта нет!
+            //todo учесть случай, если такого объекта нет!
             while (resultSet.next()) {
                 String name = resultSet.getString("name");
                 String phone = resultSet.getString("phone");
                 String email = resultSet.getString("email");
+                String[] fields = new String[]{id.toString(), name, email, phone};
                 owner = new Owner();
-                owner.setOwnerId(id);
+                owner.setFieldsArray(fields);
+                /*owner.setOwnerId(id);
                 owner.setName(name);
                 owner.setPhone(phone);
-                owner.setEmail(email);
+                owner.setEmail(email);*/
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -118,4 +141,18 @@ public class OwnerRepository implements Repository<Owner> {
         return Optional.ofNullable(owner);
     }
 
+    /**
+     * Проверяет, является ли строка числом
+     *
+     * @param string - строка, для которой выполняется проверка
+     * @return возвращает true - если это число, false - если нет.
+     */
+    private boolean isNumeric(String string) {
+        try {
+            Integer.parseInt(string);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

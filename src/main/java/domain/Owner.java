@@ -1,12 +1,23 @@
 package domain;
 
-import java.lang.reflect.Array;
+import java.util.Map;
 
 public class Owner {
     Integer ownerId;
     String name;
     String phone;
     String email;
+    String[] fields;
+    Map<String, String> values;
+
+    public String[] getFieldsArray() {
+        return fields;
+//        return new String[]{ownerId.toString(), name, phone, email};
+    }
+
+    public void setFieldsArray(String[] fields) {
+        this.fields = fields;
+    }
 
     public Owner() {
     }
@@ -16,10 +27,6 @@ public class Owner {
         this.name = name;
         this.phone = phone;
         this.email = email;
-    }
-
-    public void toFieldsArray(Array<String> fields){
-
     }
 
     public Integer getOwnerId() {
