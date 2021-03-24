@@ -12,7 +12,7 @@ public interface Repository<T> {
 
     long delete(Long id) throws SQLException;
 
-    List<T> getAll() throws SQLException;
-
     Optional<T> getOne(Long id) throws SQLException;
+
+    List<T> getAll() throws SQLException;
 }

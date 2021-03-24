@@ -1,3 +1,4 @@
+/*
 package specification;
 
 import domain.Owner;
@@ -21,3 +22,4 @@ public class LostySpecificationByOwnerId implements Specification, SqlSpecificat
         return String.format("ownerId exists %s", ownerId);
     }
 }
+*/

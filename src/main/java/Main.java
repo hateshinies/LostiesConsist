@@ -1,10 +1,13 @@
 import ConnectionPool.BasicConnectionPool;
 import ConnectionPool.ConnectionPool;
-import repository.JdbcExecutor;
+import domain.Owner;
+import repository.DbExecutor;
 import repository.RepositoryImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
 
@@ -16,8 +19,9 @@ public class Main {
 
         ConnectionPool connectionPool = BasicConnectionPool.create(connectString, username, password);
         Connection connection = connectionPool.getConnection();
-        RepositoryImpl ownerRepo = new RepositoryImpl(connection, new JdbcExecutor("owners"));
-        ownerRepo.getAll();
+        RepositoryImpl ownerRepo = new RepositoryImpl(connection, new DbExecutor("owners"));
+        List<Owner> owners = ownerRepo.getAll();
+        System.out.println(Arrays.toString(owners.get(27).getFieldsArray()));
         connectionPool.releaseConnection(connection);
     }
 }

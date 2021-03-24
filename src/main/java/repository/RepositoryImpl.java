@@ -10,10 +10,10 @@ import java.util.Optional;
 
 public class RepositoryImpl implements Repository<Owner> {
 
-    private final JdbcExecutor executor;
+    private final DbExecutor executor;
     private final Connection connection;
 
-    public RepositoryImpl(Connection connection, JdbcExecutor executor) {
+    public RepositoryImpl(Connection connection, DbExecutor executor) {
         this.connection = connection;
         this.executor = executor;
     }
