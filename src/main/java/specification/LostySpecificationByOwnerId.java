@@ -4,16 +4,16 @@ import domain.Owner;
 
 public class LostySpecificationByOwnerId implements Specification, SqlSpecification {
 
-    int ownerId;
+    Long ownerId;
 
-    public LostySpecificationByOwnerId(int ownerId) {
+    public LostySpecificationByOwnerId(Long id) {
         super();
-        this.ownerId = ownerId;
+        this.ownerId = id;
     }
 
     @Override
     public boolean specified(Owner owner) {
-        return owner.hasOwnerId(ownerId);
+        return owner.hasId(ownerId);
     }
 
     @Override

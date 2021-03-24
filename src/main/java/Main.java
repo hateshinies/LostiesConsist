@@ -1,19 +1,23 @@
 import ConnectionPool.BasicConnectionPool;
 import ConnectionPool.ConnectionPool;
-import repository.OwnerRepository;
+import repository.JdbcExecutor;
+import repository.RepositoryImpl;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class Main {
 
-    static String connectString = "jdbc:postgresql://localhost:5432/consist";
+    static String connectString = "jdbc:postgresql://localhost:5432/LostiesConsist";
     static String username = "postgres";
     static String password = "postgres";
 
     public static void main(String[] args) throws SQLException {
 
         ConnectionPool connectionPool = BasicConnectionPool.create(connectString, username, password);
-        OwnerRepository repo = new OwnerRepository(connectionPool.getConnection());
-        repo.getAll();
+        Connection connection = connectionPool.getConnection();
+        RepositoryImpl ownerRepo = new RepositoryImpl(connection, new JdbcExecutor("owners"));
+        ownerRepo.getAll();
+        connectionPool.releaseConnection(connection);
     }
 }

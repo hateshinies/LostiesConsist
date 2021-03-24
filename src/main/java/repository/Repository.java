@@ -1,17 +1,18 @@
 package repository;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 public interface Repository<T> {
 
-    void create(T entity);
+    long create(T entity) throws SQLException;
 
-    void update(T entity);
+    long update(T entity) throws SQLException;
 
-    void delete(T entity);
+    long delete(Long id) throws SQLException;
 
-    List<T> getAll();
+    List<T> getAll() throws SQLException;
 
-    Optional<T> getById(Integer id);
+    Optional<T> getOne(Long id) throws SQLException;
 }

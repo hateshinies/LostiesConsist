@@ -3,7 +3,7 @@ package domain;
 import java.util.Map;
 
 public class Owner {
-    Integer ownerId;
+    Long id;
     String name;
     String phone;
     String email;
@@ -22,19 +22,13 @@ public class Owner {
     public Owner() {
     }
 
-    public Owner(Integer ownerId, String name, String phone, String email) {
-        this.ownerId = ownerId;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
+
+    public Long getId() {
+        return id;
     }
 
-    public Integer getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Integer ownerId) {
-        this.ownerId = ownerId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -61,7 +55,7 @@ public class Owner {
         this.email = email;
     }
 
-    public boolean hasOwnerId(Integer ownerId) {
-        return this.ownerId.equals(ownerId);
+    public boolean hasId(Long id) {
+        return this.id.equals(id);
     }
 }
