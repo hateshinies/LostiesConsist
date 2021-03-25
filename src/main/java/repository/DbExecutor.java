@@ -6,26 +6,18 @@ import java.util.List;
 
 public class DbExecutor {
 
-    private final String entityName;
-    private final String[] fieldNames;
+    private static Entity entity;
 
-
-    private static final String CREATE_QUERY = "insert into %s (name,phone,email) values(?,?,?)";
-    private static final String UPDATE_QUERY = "update %s set name = ?, phone = ?, email = ? where \"id\" = ?";
-    private static final String DELETE_QUERY = "delete from %s where \"id\" = ?";
-    private static final String GET_ALL_QUERY = "select * from %s";
-    private static final String GET_ONE_QUERY = "select * from %s where \"id\" = ?";
-
-    public DbExecutor(String entityName, String[] fieldNames) {
-        this.entityName = entityName;
-        this.fieldNames = fieldNames;
+    public DbExecutor(Entity entity) {
+        DbExecutor.entity = entity;
     }
 
     public long insert(Connection connection, String[] fields) throws SQLException {
-        String query = String.format(Queries.CREATE_QUERY, entityName);
+        String query = entity.CREATE_QUERY;
         PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         for (int i = 0; i < fields.length; i++)
             statement.setString(i + 1, fields[i]);
+        System.out.println(statement);
         statement.executeUpdate();
         ResultSet resultSet = statement.getGeneratedKeys();
         resultSet.next();
@@ -33,7 +25,7 @@ public class DbExecutor {
     }
 
     public long update(Connection connection, String[] fields) throws SQLException {
-        String query = String.format(Queries.UPDATE_QUERY, entityName);
+        String query = entity.UPDATE_QUERY;
         PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         for (int i = 0; i < fields.length; i++) {
             if (i == fields.length - 1)
@@ -48,7 +40,7 @@ public class DbExecutor {
     }
 
     public long delete(Connection connection, Long id) throws SQLException {
-        String query = String.format(DELETE_QUERY, entityName);
+        String query = entity.DELETE_QUERY;
         PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
         statement.setLong(1, id);
         statement.executeUpdate();
@@ -58,21 +50,23 @@ public class DbExecutor {
     }
 
     public String[] getById(Connection connection, long id) throws SQLException {
-        String query = String.format(GET_ONE_QUERY, entityName);
+        String query = entity.GET_ONE_QUERY;
         PreparedStatement statement = connection.prepareStatement(query);
         statement.setLong(1, id);
         ResultSet resultSet = statement.executeQuery();
-        resultSet.next();
+//        resultSet.next();
         //todo здесь использовать готовые поля из переменной
+
         int columnsCount = resultSet.getMetaData().getColumnCount();
-        String[] fields  = new String[columnsCount];
+        String[] fields = new String[columnsCount];
+        resultSet.next();
         for (int i = 0; i < columnsCount; i++)
             fields[i] = resultSet.getString(i + 1);
         return fields;
     }
 
     public List<String[]> getAll(Connection connection) throws SQLException {
-        String query = String.format(GET_ALL_QUERY, entityName);
+        String query = entity.GET_ALL_QUERY;
         PreparedStatement statement = connection.prepareStatement(query);
         ResultSet resultSet = statement.executeQuery();
         List<String[]> fieldsList = new ArrayList<>();

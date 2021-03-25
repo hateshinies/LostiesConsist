@@ -2,7 +2,8 @@ import ConnectionPool.BasicConnectionPool;
 import ConnectionPool.ConnectionPool;
 import domain.Owner;
 import repository.DbExecutor;
-import repository.RepositoryImpl;
+import repository.Entity;
+import repository.OwnerRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -19,7 +20,15 @@ public class Main {
 
         ConnectionPool connectionPool = BasicConnectionPool.create(connectString, username, password);
         Connection connection = connectionPool.getConnection();
-        RepositoryImpl ownerRepo = new RepositoryImpl(connection, new DbExecutor("owners"));
+
+        String[] fields = new String[]{"name","phone","email"};
+
+        Entity entity = new Entity();
+        entity.prepareQueries("owners",fields);
+
+        DbExecutor executor = new DbExecutor(entity);
+        OwnerRepository ownerRepo = new OwnerRepository(connection,executor);
+
         List<Owner> owners = ownerRepo.getAll();
         System.out.println(Arrays.toString(owners.get(27).getFieldsArray()));
         connectionPool.releaseConnection(connection);
