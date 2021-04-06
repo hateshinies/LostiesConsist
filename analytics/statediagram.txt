@@ -1,0 +1,63 @@
+/**
+ * @startuml
+ * title Ad states
+ * hide empty description
+ * [*] --> Created
+ * Created --> ConfirmWait
+ * ConfirmWait --> Confirmed
+ * Confirmed --> PayWait
+ * PayWait -left-> Payed
+ * PayWait --> Rejected
+ * Rejected --> PayWait
+ * Payed --> Posted
+ * Posted --> TriedRespond
+ * TriedRespond : when responder send data,
+ * TriedRespond : but has not confirmed email
+ * Posted --> GotResponse
+ * Posted -left-> Aborted
+ * TriedRespond -left-> Aborted
+ * GotResponse --> Finished
+ * GotResponse --> Returned
+ * GotResponse --> Attached
+ * GotResponse --> Died
+ * GotResponse --> Lost
+ * Returned --> [*]
+ * Finished --> [*]
+ * Attached --> [*]
+ * Died --> [*]
+ * Lost --> [*]
+ * Aborted --> [*]
+ * @enduml
+ */
+
+/**
+ * @startuml
+ * title Состояния объявления
+ * hide empty description
+ * [*] --> Создано
+ * Создано --> ЖдетПодтверждения
+ * ЖдетПодтверждения --> Подтверждено
+ * Подтверждено --> ЖдетОплаты
+ * ЖдетОплаты -left-> Оплачено
+ * ЖдетОплаты --> Отклонено
+ * Отклонено --> ЖдетОплаты
+ * Оплачено --> Опубликовано
+ * Опубликовано --> ПопыткаОтклика
+ * ПопыткаОтклика : когда отозвавшийся прислал
+ * ПопыткаОтклика : инфо, но не подтвердил email
+ * Опубликовано --> ЕстьОтклик
+ * Опубликовано -left-> Отменено
+ * ПопыткаОтклика -left-> Отменено
+ * ЕстьОтклик --> Завершено
+ * ЕстьОтклик --> Возвращен
+ * ЕстьОтклик --> Пристроен
+ * ЕстьОтклик --> Погиб
+ * ЕстьОтклик --> Пропал
+ * Возвращен --> [*]
+ * Завершено --> [*]
+ * Пристроен --> [*]
+ * Погиб --> [*]
+ * Пропал --> [*]
+ * Отменено --> [*]
+ * @enduml
+ */

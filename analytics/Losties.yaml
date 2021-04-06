@@ -1,0 +1,607 @@
+openapi: 3.0.3
+info:
+  title: Losties
+  version: "1.0.0"
+paths:
+  /upload:
+    post:
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Uploads an image
+          content:
+            application/json:
+              schema:
+                type: string
+                description: Returns an image file path
+  /owner:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/OwnerBody'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: owner id
+                  location:
+                    type: string
+                    description: created object location
+  /owner/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The owner id
+      responses:
+        '200':
+          description: Gets an owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Owner'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The owner id
+      responses:
+        '204':
+          description: No data
+  /owners:
+    get:
+      description: Gets all owners
+      responses:
+        '200':
+          description: Gets an array of owners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Owner'
+  /losty:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/LostyBody'
+      responses:
+        '201':
+          description: Created
+  /losty/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The losty id
+      responses:
+        '200':
+          description: Gets a losty
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Losty'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The losty id
+      responses:
+        '204':
+          description: No data
+  /losties:
+    get:
+      description: Gets all losties
+      responses:
+        '200':
+          description: Gets an array of losties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Losty'
+  /finder:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/FinderBody'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: integer
+                description: Returns finder id
+  /finder/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The finder id
+      responses:
+        '200':
+          description: Gets a finder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Finder'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The finder id
+      responses:
+        '204':
+          description: No data
+  /finders:
+    get:
+      description: Gets all finders
+      responses:
+        '200':
+          description: Gets an array of finders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Finder'
+  /foundy:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/FoundyBody'
+      responses:
+        '201':
+          description: Created
+  /foundy/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The foundy id
+      responses:
+        '200':
+          description: Gets a foundy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Foundy'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The foundy id
+      responses:
+        '204':
+          description: No data
+  /foundies:
+    get:
+      description: Gets all foundies
+      responses:
+        '200':
+          description: Gets an array of foundies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Foundy'
+  /responder:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/ResponderBody'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: integer
+                description: Returns responder id
+  /responder/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The responder
+      responses:
+        '200':
+          description: Gets a responder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Responder'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The responder id
+      responses:
+        '204':
+          description: No data
+  /responders:
+    get:
+      description: Gets all responders
+      responses:
+        '200':
+          description: Gets an array of responders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Responder'
+  /response:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/LostyBody'
+      responses:
+        '201':
+          description: Created
+  /responses/ad/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The ad id
+      responses:
+        '200':
+          description: Gets all responses by ad id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Response'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The ad id
+      responses:
+        '204':
+          description: No data
+  /responses/resp/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The responder id
+      responses:
+        '200':
+          description: Gets all responses by responder id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Response'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The responder id
+      responses:
+        '204':
+          description: No data
+  /responses:
+    get:
+      description: Gets all responses
+      responses:
+        '200':
+          description: Gets an array of responses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Response'
+  /ad:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/AdBody'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: integer
+                description: Returns ad id
+  /ad/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The ad id
+      responses:
+        '200':
+          description: Gets an ad
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The ad id
+      responses:
+        '204':
+          description: No data
+  /ads:
+    get:
+      description: Gets all ads
+      responses:
+        '200':
+          description: Gets an array of ads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ad'
+  /payment:
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/PaymentBody'
+      responses:
+        '201':
+          description: Created
+  /payment/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The payment id
+      responses:
+        '200':
+          description: Gets a payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+    delete:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The payment id
+      responses:
+        '204':
+          description: No data
+  /payments:
+    get:
+      description: Gets all payments
+      responses:
+        '200':
+          description: Gets an array of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+components:
+  requestBodies:
+    OwnerBody:
+      description: A json object containing owner information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Owner'
+    LostyBody:
+      description: A json object containing losty information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Losty'
+    FinderBody:
+      description: A json object containing finder information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Finder'
+    FoundyBody:
+      description: A json object containing foundy information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Foundy'
+    ResponderBody:
+      description: A json object containing responder information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Responder'
+    ResponseBody:
+      description: A json object containing response information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response'
+    AdBody:
+      description: A json object containing ad information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Ad'
+    PaymentBody:
+      description: A json object containing payment information
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Payment'
+  schemas:
+    Owner:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+    Losty:
+      properties:
+        id:
+          type: integer
+        ownerId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: integer
+    Finder:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+    Foundy:
+      properties:
+        id:
+          type: integer
+        finderId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: integer
+    Responder:
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+    Response:
+      properties:
+        adsId:
+          type: integer
+        respId:
+          type: integer
+        description:
+          type: string
+    Ad:
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: integer
+    Payment:
+      properties:
+        id:
+          type: integer
+        adsId:
+          type: integer
+        isPaid:
+          type: boolean
+        sum:
+          type: integer
+        method:
+          type: string

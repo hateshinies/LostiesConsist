@@ -1,0 +1,37 @@
+/**
+ * @startuml
+ * title Use case diagram
+ * left to right direction
+ * rectangle App {
+ * usecase "Add Losty ad" as uc1
+ * usecase "Add Foundy ad" as uc2
+ * usecase "Manage current ad" as uc3
+ * usecase "Get all ads" as uc4
+ * usecase "Add ad response" as uc5
+ * }
+ * User --> uc1
+ * User --> uc2
+ * User --> uc3
+ * User --> uc4
+ * User --> uc5
+ * @enduml
+ */
+
+ /**
+  * @startuml
+  * title Даиграмма вариантов использования
+  * left to right direction
+  * rectangle Приложение {
+  * usecase "Добавить пропавшего питомца" as uc1
+  * usecase "Добавить найденного питомца" as uc2
+  * usecase "Управлять объявлением" as uc3
+  * usecase "Посмотреть все объявления" as uc4
+  * usecase "Добавить отклик на объявление" as uc5
+  * }
+  * User --> uc1
+  * User --> uc2
+  * User --> uc3
+  * User --> uc4
+  * User --> uc5
+  * @enduml
+  */
