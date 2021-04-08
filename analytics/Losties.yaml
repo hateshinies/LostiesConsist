@@ -5,6 +5,9 @@ info:
 paths:
   /upload:
     post:
+      tags:
+        - Utils
+      operationId: upload
       requestBody:
         content:
           multipart/form-data:
@@ -13,19 +16,72 @@ paths:
               format: binary
       responses:
         '200':
-          description: Uploads an image
+          description: Image successfully uploaded
           content:
             application/json:
               schema:
                 type: string
                 description: Returns an image file path
+  /confirm/{hashcode}:
+    post:
+      tags:
+        - Utils
+      operationId: confirmEmail
+      parameters:
+        - in: path
+          name: hashcode
+          required: true
+          schema:
+            type: string
+            minimum: 4
+          description: The generated hashcode used as path variable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Contains entered confirmation code
+      responses:
+        '200':
+          description: Successful confirmation
+        '400':
+          description: Confirmation fail
+  /auth:
+    post:
+      tags:
+        - Utils
+      operationId: auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email used as login
+                password:
+                  type: string
+                  description: Password hash
+      responses:
+        '200':
+          description: Successful auth
+        '401':
+          description: Auth fail
+
   /owner:
     post:
+      tags:
+        - Owner
+      operationId: addOwner
       requestBody:
         $ref: '#/components/requestBodies/OwnerBody'
       responses:
         '201':
-          description: Created
+          description: Adds new owner
           content:
             application/json:
               schema:
@@ -33,12 +89,15 @@ paths:
                 properties:
                   id:
                     type: integer
-                    description: owner id
+                    description: Returns owner id
                   location:
                     type: string
-                    description: created object location
+                    description: Returns created object location as url
   /owner/{id}:
     get:
+      tags:
+        - Owner
+      operationId: getOwnerById
       parameters:
         - in: path
           name: id
@@ -46,15 +105,18 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The owner id
+          description: The owner id used as path variable
       responses:
         '200':
-          description: Gets an owner
+          description: Returns an owner
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Owner'
     delete:
+      tags:
+        - Owner
+      operationId: deleteOwner
       parameters:
         - in: path
           name: id
@@ -62,16 +124,19 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The owner id
+          description: The owner id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes owner
   /owners:
     get:
+      tags:
+        - Owner
+      operationId: getOwners
       description: Gets all owners
       responses:
         '200':
-          description: Gets an array of owners
+          description: Returns an array of owners
           content:
             application/json:
               schema:
@@ -80,13 +145,27 @@ paths:
                   $ref: '#/components/schemas/Owner'
   /losty:
     post:
+      tags:
+        - Losty
+      operationId: addLosty
       requestBody:
         $ref: '#/components/requestBodies/LostyBody'
       responses:
         '201':
-          description: Created
+          description: Adds new losty
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+                    description: Returns created object location as url
   /losty/{id}:
     get:
+      tags:
+        - Losty
+      operationId: getLostyById
       parameters:
         - in: path
           name: id
@@ -94,15 +173,18 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The losty id
+          description: The losty id used as path variable
       responses:
         '200':
-          description: Gets a losty
+          description: Returns a losty
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Losty'
     delete:
+      tags:
+        - Losty
+      operationId: deleteLosty
       parameters:
         - in: path
           name: id
@@ -110,137 +192,51 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The losty id
+          description: The losty id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes losty
   /losties:
     get:
+      tags:
+        - Losty
+      operationId: getLosties
       description: Gets all losties
       responses:
         '200':
-          description: Gets an array of losties
+          description: Returns an array of losties
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Losty'
-  /finder:
-    post:
-      requestBody:
-        $ref: '#/components/requestBodies/FinderBody'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: integer
-                description: Returns finder id
-  /finder/{id}:
-    get:
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: The finder id
-      responses:
-        '200':
-          description: Gets a finder
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Finder'
-    delete:
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: The finder id
-      responses:
-        '204':
-          description: No data
-  /finders:
-    get:
-      description: Gets all finders
-      responses:
-        '200':
-          description: Gets an array of finders
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Finder'
-  /foundy:
-    post:
-      requestBody:
-        $ref: '#/components/requestBodies/FoundyBody'
-      responses:
-        '201':
-          description: Created
-  /foundy/{id}:
-    get:
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: The foundy id
-      responses:
-        '200':
-          description: Gets a foundy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Foundy'
-    delete:
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: The foundy id
-      responses:
-        '204':
-          description: No data
-  /foundies:
-    get:
-      description: Gets all foundies
-      responses:
-        '200':
-          description: Gets an array of foundies
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Foundy'
   /responder:
     post:
+      tags:
+        - Responder
+      operationId: addResponder
       requestBody:
         $ref: '#/components/requestBodies/ResponderBody'
       responses:
         '201':
-          description: Created
+          description: Adds a responder
           content:
             application/json:
               schema:
-                type: integer
-                description: Returns responder id
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Returns responder id
+                  location:
+                    type: string
+                    description: Returns created object location as url
   /responder/{id}:
     get:
+      tags:
+        - Responder
+      operationId: getResponderById
       parameters:
         - in: path
           name: id
@@ -248,15 +244,18 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The responder
+          description: The responder id used as path variable
       responses:
         '200':
-          description: Gets a responder
+          description: Returns a responder
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Responder'
     delete:
+      tags:
+        - Responder
+      operationId: deleteResponder
       parameters:
         - in: path
           name: id
@@ -264,16 +263,19 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The responder id
+          description: The responder id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes responder
   /responders:
     get:
+      tags:
+        - Responder
+      operationId: getResponders
       description: Gets all responders
       responses:
         '200':
-          description: Gets an array of responders
+          description: Returns an array of responders
           content:
             application/json:
               schema:
@@ -282,13 +284,27 @@ paths:
                   $ref: '#/components/schemas/Responder'
   /response:
     post:
+      tags:
+        - Response
+      operationId: addResponse
       requestBody:
         $ref: '#/components/requestBodies/LostyBody'
       responses:
         '201':
-          description: Created
+          description: Adds new Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+                    description: Returns created object location as url
   /responses/ad/{id}:
     get:
+      tags:
+        - Response
+      operationId: getResponseByAdId
       parameters:
         - in: path
           name: id
@@ -296,7 +312,7 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The ad id
+          description: The ad id used as path variable
       responses:
         '200':
           description: Gets all responses by ad id
@@ -307,6 +323,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Response'
     delete:
+      tags:
+        - Response
+      operationId: deleteResponseByAdId
       parameters:
         - in: path
           name: id
@@ -314,12 +333,15 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The ad id
+          description: The ad id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes response by ad id
   /responses/resp/{id}:
     get:
+      tags:
+        - Response
+      operationId: getResponseByRespId
       parameters:
         - in: path
           name: id
@@ -327,10 +349,10 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The responder id
+          description: The responder id used as path variable
       responses:
         '200':
-          description: Gets all responses by responder id
+          description: Returns all responses by responder id
           content:
             application/json:
               schema:
@@ -338,6 +360,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Response'
     delete:
+      tags:
+        - Response
+      operationId: deleteResponseByRespId
       parameters:
         - in: path
           name: id
@@ -345,16 +370,19 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The responder id
+          description: The responder id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes response by responder id
   /responses:
     get:
+      tags:
+        - Response
+      operationId: getResponses
       description: Gets all responses
       responses:
         '200':
-          description: Gets an array of responses
+          description: Returns an array of responses
           content:
             application/json:
               schema:
@@ -363,18 +391,30 @@ paths:
                   $ref: '#/components/schemas/Response'
   /ad:
     post:
+      tags:
+        - Ad
+      operationId: addAd
       requestBody:
         $ref: '#/components/requestBodies/AdBody'
       responses:
         '201':
-          description: Created
+          description: Adds new ad
           content:
             application/json:
               schema:
-                type: integer
-                description: Returns ad id
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: Returns ad id
+                  location:
+                    type: string
+                    description: Returns created object location as url
   /ad/{id}:
     get:
+      tags:
+        - Ad
+      operationId: getAdById
       parameters:
         - in: path
           name: id
@@ -382,15 +422,18 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The ad id
+          description: The ad id used as path variable
       responses:
         '200':
-          description: Gets an ad
+          description: Returns an ad
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Ad'
     delete:
+      tags:
+        - Ad
+      operationId: deleteAd
       parameters:
         - in: path
           name: id
@@ -398,16 +441,19 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The ad id
+          description: The ad id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes ad
   /ads:
     get:
+      tags:
+        - Ad
+      operationId: getAds
       description: Gets all ads
       responses:
         '200':
-          description: Gets an array of ads
+          description: Returns an array of ads
           content:
             application/json:
               schema:
@@ -416,13 +462,27 @@ paths:
                   $ref: '#/components/schemas/Ad'
   /payment:
     post:
+      tags:
+        - Payment
+      operationId: addPayment
       requestBody:
         $ref: '#/components/requestBodies/PaymentBody'
       responses:
         '201':
-          description: Created
+          description: Adds new payment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+                    description: Returns created object location as url
   /payment/{id}:
     get:
+      tags:
+        - Payment
+      operationId: getPaymentById
       parameters:
         - in: path
           name: id
@@ -430,15 +490,18 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The payment id
+          description: The payment id used as path variable
       responses:
         '200':
-          description: Gets a payment
+          description: Returns a payment
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Payment'
     delete:
+      tags:
+        - Payment
+      operationId: deletePayment
       parameters:
         - in: path
           name: id
@@ -446,16 +509,19 @@ paths:
           schema:
             type: integer
             minimum: 1
-          description: The payment id
+          description: The payment id used as path variable
       responses:
         '204':
-          description: No data
+          description: Deletes payment
   /payments:
     get:
+      tags:
+        - Payment
+      operationId: getPayments
       description: Gets all payments
       responses:
         '200':
-          description: Gets an array of payments
+          description: Returns an array of payments
           content:
             application/json:
               schema:
@@ -478,20 +544,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Losty'
-    FinderBody:
-      description: A json object containing finder information
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Finder'
-    FoundyBody:
-      description: A json object containing foundy information
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Foundy'
     ResponderBody:
       description: A json object containing responder information
       required: true
@@ -536,28 +588,6 @@ components:
         id:
           type: integer
         ownerId:
-          type: integer
-        name:
-          type: string
-        description:
-          type: string
-        category:
-          type: integer
-    Finder:
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        phone:
-          type: string
-        email:
-          type: string
-    Foundy:
-      properties:
-        id:
-          type: integer
-        finderId:
           type: integer
         name:
           type: string
