@@ -1,152 +1,153 @@
---создание таблиц
+CREATE TYPE "state" AS ENUM ('CONFIRM_WAIT', 'CONFIRMED', 'POSTED', 'PAY_WAIT', 'PAYED', 'REJECTED', 'POSTED_EXTRA', 'GOT_RESPONSE', 'ABORTED', 'SUCCESS', 'FINISHED');
 
-CREATE TABLE "adv" (
-  "advId" bigint PRIMARY KEY,
-  "title" varchar,
-  "description" varchar,
-  "category" bigint
+CREATE TYPE "type" AS ENUM ('LOST', 'FOUND');
+
+CREATE TYPE "role" AS ENUM ('ADMIN','OWNER','VOLUNTEER','RESPONDER','UNAUTHORISED');
+
+CREATE TABLE "user"
+(
+    "email"     varchar PRIMARY KEY,
+    "role"      role,
+    "password"  varchar,
+    "token"     varchar,
+    "name"      varchar,
+    "phone"     varchar,
+    "isBlocked" boolean,
+    "isActual" boolean,	
 );
 
-CREATE TABLE "response" (
-  "advId" bigint,
-  "respId" bigint,
-  "description" varchar
+CREATE TABLE "userRole"
+(
+    "role"        role PRIMARY KEY,
+    "description" varchar,
+    "permissions" integer
 );
 
-CREATE TABLE "responder" (
-  "respId" bigint PRIMARY KEY,
-  "name" varchar,
-  "phone" varchar,
-  "email" varchar
+CREATE TABLE "actor"
+(
+    "email" varchar PRIMARY KEY,
+    "role"  role,
+    "token" varchar
 );
 
-CREATE TABLE "advState" (
-  "advId" bigint,
-  "state" bigint,
-  "start" timestamp,
-  "end" timestamp
+CREATE TABLE "publication"
+(
+    "id"          bigserial PRIMARY KEY,
+    "email"       varchar,
+    "description" varchar,
+    "photo"       varchar,
+    "state"       state,
+    "createdAt"   bigint
 );
 
-CREATE TABLE "payment" (
-  "payId" bigint PRIMARY KEY,
-  "advId" bigint,
-  "isPaid" boolean,
-  "sum" integer,
-  "method" varchar
+CREATE TABLE "response"
+(
+    "id"            bigserial PRIMARY KEY,
+    "email"         varchar,
+    "publicationId" bigint
+    "photo"         varchar,
+    "description"   varchar
 );
 
-CREATE TABLE "advCategory" (
-  "category" bigint PRIMARY KEY,
-  "description" varchar
+CREATE TABLE "extraType"
+(
+    "type"        type PRIMARY KEY,
+    "description" varchar,
+    "price"       integer
 );
 
-CREATE TABLE "losty" (
-  "lostyId" integer PRIMARY KEY,
-  "name" varchar,
-  "description" varchar,
-  "photo" varchar,
-  "category" bigint,
-  "ownerId" bigint
+CREATE TABLE "publicationState"
+(
+    "state"       state PRIMARY KEY,
+    "description" varchar
 );
 
-CREATE TABLE "owner" (
-  "ownerId" bigint PRIMARY KEY,
-  "name" varchar,
-  "phone" varchar,
-  "email" varchar
+CREATE TABLE "extra"
+(
+    "id"            bigserial PRIMARY KEY,
+    "publicationId" bigint
+    "startDate"     date,
+    "daysQuantity"  integer,
+    "coordinates"   varchar,
+    "type"          type,
+    "paymentId"     bigint,
+    "isPublishing"  boolean
 );
 
-CREATE TABLE "foundy" (
-  "foundyId" bigint PRIMARY KEY,
-  "name" varchar,
-  "description" varchar,
-  "photo" varchar,
-  "category" bigint,
-  "finderId" bigint
+CREATE TABLE "payment"
+(
+    "extraId"       bigint PRIMARY KEY,
+    "amount"        integer,
+    "transactionId" bigint
+    "dateTime"      bigint
 );
 
-CREATE TABLE "finder" (
-  "finderId" bigint PRIMARY KEY,
-  "name" varchar,
-  "phone" varchar,
-  "email" varchar
-);
+ALTER TABLE "user"
+    ADD FOREIGN KEY ("role") REFERENCES "userRole" ("role");
 
-ALTER TABLE "adv" ADD FOREIGN KEY ("category") REFERENCES "advCategory" ("category");
+ALTER TABLE "user"
+    ADD FOREIGN KEY ("email") REFERENCES "actor" ("email");
 
-ALTER TABLE "response" ADD FOREIGN KEY ("advId") REFERENCES "adv" ("advId");
+ALTER TABLE "publication"
+    ADD FOREIGN KEY ("email") REFERENCES "actor" ("email");
 
-ALTER TABLE "response" ADD FOREIGN KEY ("respId") REFERENCES "responder" ("respId");
+ALTER TABLE "publication"
+    ADD FOREIGN KEY ("state") REFERENCES "publicationState" ("state");
 
-ALTER TABLE "advState" ADD FOREIGN KEY ("advId") REFERENCES "adv" ("advId");
+ALTER TABLE "response"
+    ADD FOREIGN KEY ("email") REFERENCES "actor" ("email");
 
-ALTER TABLE "payment" ADD FOREIGN KEY ("advId") REFERENCES "adv" ("advId");
+ALTER TABLE "response"
+    ADD FOREIGN KEY ("publicationId") REFERENCES "publication" ("id");
 
-ALTER TABLE "losty" ADD FOREIGN KEY ("category") REFERENCES "advCategory" ("category");
+ALTER TABLE "extra"
+    ADD FOREIGN KEY ("publicationId") REFERENCES "publication" ("id");
 
-ALTER TABLE "losty" ADD FOREIGN KEY ("ownerId") REFERENCES "owner" ("ownerId");
+ALTER TABLE "extra"
+    ADD FOREIGN KEY ("type") REFERENCES "extraType" ("type");
 
-ALTER TABLE "foundy" ADD FOREIGN KEY ("category") REFERENCES "advCategory" ("category");
+ALTER TABLE "payment"
+    ADD FOREIGN KEY ("extraId") REFERENCES "extra" ("id");
 
-ALTER TABLE "foundy" ADD FOREIGN KEY ("finderId") REFERENCES "finder" ("finderId");
+insert into "publicationState" (state,description) values ('CONFIRM_WAIT','waiting user to confirm email');
+insert into "publicationState" (state,description) values ('CONFIRMED','after successful email confirmation');
+insert into "publicationState" (state,description) values ('POSTED','free publication has been posted');
+insert into "publicationState" (state,description) values ('PAY_WAIT','waiting for extra payment');
+insert into "publicationState" (state,description) values ('PAYED','extra payment succeed');
+insert into "publicationState" (state,description) values ('REJECTED','after unsuccessful payment attempt');
+insert into "publicationState" (state,description) values ('POSTED_EXTRA','paid publication has been posted');
+insert into "publicationState" (state,description) values ('GOT_RESPONSE','there were some responses');
+insert into "publicationState" (state,description) values ('ABORTED','was aborted by user');
+insert into "publicationState" (state,description) values ('SUCCESS','successfully found');
+insert into "publicationState" (state,description) values ('FINISHED','end of extra publication');
+
+insert into "userRole"(role,description,permissions)values('ADMIN','administrator role',-1);
+insert into "userRole"(role,description,permissions)values('UNAUTHORISED','unknown',0);
+insert into "userRole"(role,description,permissions)values('OWNER','the one who lost his pet',1);
+insert into "userRole"(role,description,permissions)values('VOLUNTEER','the one who found someone pet',2);
+insert into "userRole"(role,description,permissions)values('RESPONDER','the one who made response',3);
+
+insert into "extraType" (type,description,price)values('LOST','owner looks for his pet',120);
+insert into "extraType" (type,description,price)values('FOUND','volunteer looks for pet owner',100);
 
 
---скрипты наполнения
+INSERT INTO "actor" (email,role,token) VALUES ('Duis@ipsumnuncid.ca','ADMIN','1E58DF97-AF41-8E61-12C7-FC4B96943459'),('Cras@ullamcorper.org','RESPONDER','B6ED883B-A5FB-1825-2CBD-F4A28AC99DE7'),('sem.Pellentesque.ut@justonecante.com','RESPONDER','A9554B81-CDBA-F7F7-8B9B-99D6E806070C'),('Fusce@amet.ca','OWNER','7A6DFD11-3A3D-FC34-D55E-F5C455D31F77'),('dui.nec.urna@elementumat.edu','RESPONDER','0F5537C1-6578-F3BF-8210-2C220F215935'),('gravida@Incondimentum.org','OWNER','08E80137-5250-82B1-5D78-A52580A0EF51'),('elit@tellusAeneanegestas.ca','ADMIN','31F73085-445A-2B05-F8F0-77685DB2D149'),('amet.orci@tinciduntdui.net','ADMIN','0E638CA6-21EF-898D-1B51-5A6830C65490'),('interdum.Sed@fermentumconvallis.net','VOLUNTEER','E8A41566-23CC-9B50-C46A-5ACF6A4337B4'),('sed.leo.Cras@diam.ca','RESPONDER','C09F7017-772E-1B67-1D6C-413F2E3EDEA5'),('sed@gravida.co.uk','ADMIN','D0766109-1569-C691-E765-30523742D31A'),('Suspendisse@ridiculus.org','OWNER','AC230E04-429C-B509-BA34-E325331EB1AB'),('tincidunt@sit.net','VOLUNTEER','D6464CBE-4DD0-EB30-6238-7E2CC2C74C84'),('habitant@Quisqueaclibero.org','RESPONDER','A41EB00F-D99A-2647-8B3C-D0C0392A3480'),('nascetur@lacusEtiam.org','ADMIN','CF217985-66F8-DED7-55C5-39EE2F77D9C3'),('Aenean@Maurisnulla.org','RESPONDER','AE5367E2-CDFD-11F3-44B0-DE84F0C9DE7A'),('volutpat@lacus.net','VOLUNTEER','C2A43656-B199-D35B-4A50-370679AD4B75'),('placerat.orci.lacus@diam.org','ADMIN','9A90CD37-B8F1-B53D-CC97-78FCF7B7AC04'),('mi@eu.com','ADMIN','F5416F94-7D8A-528B-148E-5CCE07B04695'),('Phasellus@liberoduinec.com','ADMIN','9B5AEAF7-99DB-8984-9BA5-A11B3A513E58'),('ornare@orci.org','RESPONDER','F7BFC326-F876-2451-0303-1DF1CE0F294F'),('pede.nec.ante@nuncinterdum.edu','VOLUNTEER','145D7637-B979-1E9A-8D6A-BF39E1EB82DF'),('ipsum.Phasellus@urnaNullam.ca','VOLUNTEER','E7C2833F-F727-F5FB-E505-E3C477C81599'),('lorem.lorem@ornareInfaucibus.org','ADMIN','703FFBFB-9AEB-3A82-9A2C-ECDC989C5062'),('a@non.co.uk','RESPONDER','039A854B-6097-62E6-19D1-2C51D3DF0500'),('Sed.dictum@netusetmalesuada.net','OWNER','91CA10A7-4021-3927-A288-5A96F7831DD2'),('sem@nonegestas.org','ADMIN','5F11BC13-23C0-1403-35AA-38F4EC6C2381'),('magnis@magnaDuisdignissim.co.uk','OWNER','394DCC04-83A4-F508-802A-86497CAE0D55'),('eu.lacus.Quisque@sitamet.org','VOLUNTEER','AA23B37C-4F8F-E0B8-6C1B-6E1674E12616'),('tellus@ultrices.co.uk','VOLUNTEER','F6F22AA6-5B12-5A5B-6E21-BD3BE95E8573'),('iaculis@antedictumcursus.edu','VOLUNTEER','B6727D17-95F6-9C94-5BA8-1F2CF696E1B7'),('ut@liberoest.net','VOLUNTEER','0AE03A08-7642-7AE2-9F69-73B2DDA67DD0'),('pellentesque.a@Vestibulumaccumsan.edu','ADMIN','69B11BFF-69BF-7D25-E2B6-165586A1F0A0'),('nibh@musAeneaneget.com','RESPONDER','FAF83DB7-1E87-6F80-72CC-FA97FD31B732'),('mauris.eu.elit@nisia.edu','RESPONDER','02772C0E-FDB8-834C-664A-E15E8519F970'),('faucibus.lectus.a@dictumeleifendnunc.edu','RESPONDER','79C9B2C4-3E6B-D94C-54F9-42FD99F34A05'),('natoque.penatibus.et@Vivamusmolestie.net','OWNER','E12FD965-B577-187D-4D02-E4BA903B59C2'),('Ut@pellentesqueafacilisis.com','ADMIN','9A5FFC55-3768-6565-990A-2E2CF6092C0E'),('in@aenim.org','OWNER','4F010CDA-4E06-254B-336F-079318F250EB'),('lacus.Mauris.non@Loremipsumdolor.com','ADMIN','1C876342-E526-0B42-4FD6-202C1CC9CA83'),('enim.nec.tempus@magnisdis.ca','VOLUNTEER','F8B3E79F-E519-537E-D06F-5B25578C46FE'),('Class.aptent.taciti@Nullamscelerisque.edu','VOLUNTEER','97AA42C2-48B0-4C98-AD96-916554BFA078'),('dui.augue.eu@eu.org','ADMIN','D3F89D98-0E0B-E065-FA21-99FEFD285E1F'),('et@Nullatincidunt.edu','ADMIN','FAF6E6C5-BB0F-E224-CF1F-5D5F3691C647'),('vitae.nibh.Donec@vitae.org','ADMIN','E0421909-F1FC-0BEA-DC64-ACADC75E9495'),('adipiscing@Aeneanegestashendrerit.edu','OWNER','81376AF3-82A0-13AA-7BD3-4B5735188FC3'),('Cum@Aliquamvulputate.ca','VOLUNTEER','E2508140-A54B-9818-732D-8ABEA0C52BC4'),('Donec.felis.orci@orciin.org','VOLUNTEER','16331DCA-A6CB-7675-3D82-78262DF99FDF'),('risus.varius@sitamet.org','RESPONDER','1199B831-73C2-582A-B8CD-1BF3EBBC2AAE'),('a@Sedeu.com','VOLUNTEER','B5B132B2-706D-02E9-73EE-05998941504C'),('orci@Aliquamrutrumlorem.ca','ADMIN','54A12456-FA0B-A369-BD7E-C3FE5B8A2BC9'),('Nunc.pulvinar.arcu@lectusquismassa.org','OWNER','D8C25670-C45F-1624-EE37-6C71200EC8C7'),('sit.amet.risus@tellusPhaselluselit.org','VOLUNTEER','44EC144A-B4DE-2004-FEAB-9BD6FC96697E'),('non@litoratorquentper.net','VOLUNTEER','D17B135E-DEF4-1D43-BE9E-0231BA2BE845'),('erat.semper@nisiAenean.org','OWNER','FF67479C-A2AD-A8EE-CC65-EEA8B6AD1798'),('accumsan@placerat.co.uk','VOLUNTEER','E671B24E-4F63-027A-79AF-F0FE9DFFF441'),('nec.tellus@sem.com','OWNER','C8BF7903-6240-D909-379A-76B4611F72F6'),('a.scelerisque@quis.co.uk','RESPONDER','77ABFA44-7361-912D-74AA-B06B689EC8BD'),('ante.lectus.convallis@sitamet.edu','RESPONDER','00781F31-0CFD-2E6F-4ADD-E944ED70EE8A'),('massa@risus.net','OWNER','1957E4DA-0D0B-FBB3-8510-5B6C6B578DBB'),('nibh.Aliquam@massaInteger.co.uk','VOLUNTEER','B284316A-52B7-778B-73FA-279829468F45'),('ante.Nunc.mauris@In.co.uk','OWNER','638DFEFC-8D0F-1BBE-F437-6100305AFF5D'),('arcu@porttitor.org','ADMIN','DB5BF91C-5FDC-9A04-8833-A390D5FEBDFE'),('ullamcorper.Duis@liberoInteger.org','OWNER','2839D3B4-4E2F-5EBF-F772-3E7275AF2891'),('tellus@sitamet.edu','RESPONDER','BBFF49D9-1719-B50D-14EF-9118A8439E1E'),('dis@dolorNulla.org','ADMIN','C0A997D8-E112-3F80-128C-4044AB4851CF'),('nunc@acrisusMorbi.com','OWNER','6F9B90F9-005D-CDB5-A3E2-703216AFEE25'),('Phasellus.elit.pede@magnisdis.com','RESPONDER','00E0C751-8B2A-DB17-F309-79047EE30332'),('semper@Integerinmagna.ca','VOLUNTEER','20452C0C-11AA-DCFA-34FA-1E98BAEEB8D7'),('arcu.Nunc@Crasegetnisi.ca','RESPONDER','C57B8786-39DB-23A8-728A-68370A920661'),('enim@risus.com','OWNER','9D60EE10-6231-CFD7-23A6-7AE5E40FD35C'),('quis.pede.Suspendisse@ullamcorper.edu','VOLUNTEER','3A40DF72-627B-B204-DC9D-2114D637E2C9'),('aliquet@Nam.ca','OWNER','46F7B7B8-CD69-F338-CFC2-BC6D3E82E5F8'),('consectetuer.mauris@Fusce.net','RESPONDER','A1E596F1-760F-00E2-63F3-B06B4FFB24B6'),('tempus.lorem@quamelementum.co.uk','VOLUNTEER','A8FAEAA0-6C69-D404-81C4-5B0A4779C92E'),('euismod.in@Donec.ca','ADMIN','541EA377-DDE0-6CA8-8E26-79D4344E41A6'),('Proin.mi@vestibulumnec.com','RESPONDER','8274021B-CCA8-C296-5907-2B8063A3BC34'),('ridiculus.mus.Donec@dictum.ca','VOLUNTEER','EA54218D-0923-E83B-2978-32EAAD48E365'),('at@Loremipsum.ca','OWNER','094191AE-72CC-0E29-231B-DE8E5AFE0244'),('fringilla.porttitor.vulputate@semper.co.uk','ADMIN','2FC6648F-1DDD-C27E-D2B2-3A8F6660D3D2'),('non.egestas.a@In.org','ADMIN','C8DA31C4-1321-4170-4108-38F79E60DB72'),('orci@porttitoreros.com','VOLUNTEER','7C6E23F9-484C-DBA6-3C91-F5B48A778326'),('mi.ac.mattis@ipsum.co.uk','ADMIN','D75C43B6-3575-8F88-FDC9-74916E6FC94A'),('Nunc.ullamcorper@sagittis.co.uk','RESPONDER','4AC675B5-3DD5-D49D-966D-2B5EC6B3CFF0'),('Proin.eget@odio.org','OWNER','ED1B05B1-918A-E034-C0E4-7E52869EA54F'),('Duis@et.org','ADMIN','F0CC735D-E6FF-DDAE-1224-2D9369B87CE8'),('malesuada.malesuada@sit.edu','RESPONDER','0469DF84-6D03-13F0-9EA9-589C45577D1C'),('blandit.Nam.nulla@non.net','RESPONDER','E8500C2D-8D2D-0F68-3ABF-E3F216F7CA85'),('aliquam.iaculis.lacus@Aliquameratvolutpat.org','ADMIN','7D1F9552-0EAF-8515-BDC8-65FAFCF87149'),('fringilla.est.Mauris@Donecat.edu','ADMIN','216E37B2-3C3E-FE82-032A-7B865482A4E1'),('luctus@nuncrisus.com','RESPONDER','A2AFE1B1-FA09-61BC-75BD-A6BE6DC60721'),('id.magna.et@ipsum.com','ADMIN','827116D7-C42D-833E-9B3B-BB61375129F5'),('Etiam.imperdiet@suscipitnonummyFusce.ca','OWNER','F33B203D-66A7-8909-AFB7-76E4ADEE5BF4'),('non.vestibulum@aliquam.edu','VOLUNTEER','C000E976-E635-9BF1-B66B-7FB59513F5A7'),('magna.Suspendisse@DonecnibhQuisque.org','ADMIN','A082A98D-65AD-178F-707A-A350A12C1273'),('Mauris@sitametorci.org','VOLUNTEER','69BEF8D5-4B74-DDC2-BA9C-9820C4DD97E5'),('nisi@posuereenim.org','RESPONDER','ABE8D6A6-BD55-A403-5A40-87BDDDFB953E'),('imperdiet.ullamcorper@lectusNullam.ca','OWNER','46CE989C-DD1B-9FB2-D5F1-CC6442FB44E3'),('mattis.semper.dui@ametmetus.net','ADMIN','C4E01506-E37A-B94A-38BE-4B0BC9D06547'),('eros.nec@nec.co.uk','RESPONDER','0465A66A-8AB5-02BA-F5B4-47E2CD491F76');
 
-INSERT INTO "advCategory" ("category","description") VALUES (1,'venenatis lacus. Etiam bibendum fermentum'),(2,'malesuada id, erat. Etiam vestibulum'),(3,'libero nec ligula consectetuer rhoncus.'),(4,'et netus et malesuada fames'),(5,'aliquam eu, accumsan sed, facilisis'),(6,'massa. Suspendisse eleifend. Cras sed'),(7,'lectus ante dictum mi, ac'),(8,'aliquet. Phasellus fermentum convallis ligula.'),(9,'Morbi quis urna. Nunc quis'),(10,'nulla ante, iaculis nec, eleifend');
-INSERT INTO "advCategory" ("category","description") VALUES (11,'eu, odio. Phasellus at augue'),(12,'vitae mauris sit amet lorem'),(13,'enim diam vel arcu. Curabitur'),(14,'suscipit, est ac facilisis facilisis,'),(15,'aliquet vel, vulputate eu, odio.'),(16,'morbi tristique senectus et netus'),(17,'sapien. Aenean massa. Integer vitae'),(18,'Sed id risus quis diam'),(19,'nisi magna sed dui. Fusce'),(20,'luctus felis purus ac tellus.');
-INSERT INTO "advCategory" ("category","description") VALUES (21,'Vestibulum ut eros non enim'),(22,'ante. Maecenas mi felis, adipiscing'),(23,'nonummy ipsum non arcu. Vivamus'),(24,'Nunc pulvinar arcu et pede.'),(25,'vestibulum, neque sed dictum eleifend,'),(26,'ut, sem. Nulla interdum. Curabitur'),(27,'ut, pellentesque eget, dictum placerat,'),(28,'ut dolor dapibus gravida. Aliquam'),(29,'lorem, auctor quis, tristique ac,'),(30,'velit justo nec ante. Maecenas');
-INSERT INTO "advCategory" ("category","description") VALUES (31,'Nulla dignissim. Maecenas ornare egestas'),(32,'tellus. Phasellus elit pede, malesuada'),(33,'nisi a odio semper cursus.'),(34,'id, mollis nec, cursus a,'),(35,'massa. Suspendisse eleifend. Cras sed'),(36,'ullamcorper. Duis at lacus. Quisque'),(37,'sociis natoque penatibus et magnis'),(38,'nisi. Cum sociis natoque penatibus'),(39,'nunc id enim. Curabitur massa.'),(40,'ut mi. Duis risus odio,');
-INSERT INTO "advCategory" ("category","description") VALUES (41,'Pellentesque ut ipsum ac mi'),(42,'sed, sapien. Nunc pulvinar arcu'),(43,'nec metus facilisis lorem tristique'),(44,'Donec at arcu. Vestibulum ante'),(45,'nec tempus scelerisque, lorem ipsum'),(46,'feugiat. Sed nec metus facilisis'),(47,'ullamcorper. Duis cursus, diam at'),(48,'ante blandit viverra. Donec tempus,'),(49,'molestie orci tincidunt adipiscing. Mauris'),(50,'cursus non, egestas a, dui.');
-INSERT INTO "advCategory" ("category","description") VALUES (51,'blandit. Nam nulla magna, malesuada'),(52,'enim non nisi. Aenean eget'),(53,'et, euismod et, commodo at,'),(54,'Proin mi. Aliquam gravida mauris'),(55,'scelerisque, lorem ipsum sodales purus,'),(56,'aliquet molestie tellus. Aenean egestas'),(57,'velit in aliquet lobortis, nisi'),(58,'lacinia mattis. Integer eu lacus.'),(59,'sit amet, consectetuer adipiscing elit.'),(60,'amet ante. Vivamus non lorem');
-INSERT INTO "advCategory" ("category","description") VALUES (61,'eget, volutpat ornare, facilisis eget,'),(62,'non, vestibulum nec, euismod in,'),(63,'ac mattis semper, dui lectus'),(64,'diam. Pellentesque habitant morbi tristique'),(65,'pharetra ut, pharetra sed, hendrerit'),(66,'arcu. Aliquam ultrices iaculis odio.'),(67,'faucibus leo, in lobortis tellus'),(68,'et, magna. Praesent interdum ligula'),(69,'dictum mi, ac mattis velit'),(70,'ultricies sem magna nec quam.');
-INSERT INTO "advCategory" ("category","description") VALUES (71,'lorem, vehicula et, rutrum eu,'),(72,'Sed pharetra, felis eget varius'),(73,'dictum augue malesuada malesuada. Integer'),(74,'cursus. Nunc mauris elit, dictum'),(75,'Ut tincidunt vehicula risus. Nulla'),(76,'mollis. Integer tincidunt aliquam arcu.'),(77,'rutrum urna, nec luctus felis'),(78,'dapibus id, blandit at, nisi.'),(79,'mi pede, nonummy ut, molestie'),(80,'nec quam. Curabitur vel lectus.');
-INSERT INTO "advCategory" ("category","description") VALUES (81,'vestibulum. Mauris magna. Duis dignissim'),(82,'Vivamus rhoncus. Donec est. Nunc'),(83,'dolor sit amet, consectetuer adipiscing'),(84,'justo eu arcu. Morbi sit'),(85,'eu enim. Etiam imperdiet dictum'),(86,'lacus. Cras interdum. Nunc sollicitudin'),(87,'Integer eu lacus. Quisque imperdiet,'),(88,'eget magna. Suspendisse tristique neque'),(89,'erat. Sed nunc est, mollis'),(90,'est, mollis non, cursus non,');
-INSERT INTO "advCategory" ("category","description") VALUES (91,'orci tincidunt adipiscing. Mauris molestie'),(92,'ut eros non enim commodo'),(93,'In faucibus. Morbi vehicula. Pellentesque'),(94,'luctus aliquet odio. Etiam ligula'),(95,'orci luctus et ultrices posuere'),(96,'scelerisque neque. Nullam nisl. Maecenas'),(97,'dui. Fusce aliquam, enim nec'),(98,'non, cursus non, egestas a,'),(99,'arcu. Morbi sit amet massa.'),(100,'eget, venenatis a, magna. Lorem');
 
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (1,'Rama','8-990-270-0130','amet@Nunclaoreet.net'),(2,'Nathaniel','8-963-239-5447','nibh.Aliquam@volutpat.net'),(3,'Tanner','8-983-719-5150','Morbi@orciquislectus.net'),(4,'Chloe','8-961-745-3662','Donec@sem.edu'),(5,'Jaden','8-903-317-9871','non.lorem.vitae@necimperdiet.com'),(6,'Ahmed','8-922-409-1857','enim@posuerecubilia.co.uk'),(7,'Melyssa','8-993-865-9462','nulla@euismodestarcu.org'),(8,'Wynne','8-984-799-3008','varius.et@bibendum.edu'),(9,'Lara','8-901-992-3379','in.cursus.et@Nuncquisarcu.edu'),(10,'Akeem','8-943-507-0918','gravida@Duis.edu');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (11,'Irma','8-917-716-4086','augue.porttitor.interdum@Donecporttitor.co.uk'),(12,'Ryder','8-936-737-7704','feugiat.placerat.velit@placerat.edu'),(13,'Nicholas','8-978-694-0509','libero.Donec@molestie.com'),(14,'Kelly','8-941-601-7451','sem@enim.co.uk'),(15,'Raymond','8-975-218-8065','egestas.Aliquam@mitemporlorem.ca'),(16,'Casey','8-905-359-3080','et.magnis@semPellentesqueut.edu'),(17,'David','8-911-861-9659','cursus.non@magnaNam.org'),(18,'Russell','8-916-687-9482','hymenaeos.Mauris.ut@Vivamus.com'),(19,'Ulysses','8-956-487-1171','Donec@pellentesqueSeddictum.net'),(20,'Mona','8-978-974-1233','dolor.sit.amet@QuisquevariusNam.ca');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (21,'Boris','8-963-229-6086','commodo.ipsum@rutrumnon.net'),(22,'Lawrence','8-920-675-9422','arcu.Vestibulum.ante@ipsumsodales.org'),(23,'Kimberley','8-906-330-6652','Cras.dictum@faucibus.co.uk'),(24,'Aphrodite','8-954-280-3693','nunc.Quisque@duiquis.net'),(25,'Gage','8-947-888-5734','augue.id@luctus.com'),(26,'Amela','8-969-965-1619','a.dui@amet.co.uk'),(27,'Fitzgerald','8-965-574-4284','Proin.vel@pedeNunc.ca'),(28,'Naida','8-914-203-8820','semper@tinciduntdui.co.uk'),(29,'Maxwell','8-996-803-9194','ultrices.a.auctor@pharetraQuisqueac.co.uk'),(30,'Destiny','8-984-981-0660','auctor@leo.co.uk');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (31,'Miranda','8-957-955-3151','mauris.Morbi@augueid.edu'),(32,'Hope','8-932-709-5903','malesuada@Pellentesquehabitantmorbi.net'),(33,'Miranda','8-959-999-7592','morbi.tristique@vestibulumloremsit.net'),(34,'Yael','8-937-103-5975','vel.convallis@acnulla.com'),(35,'Allen','8-954-187-3698','enim.Sed.nulla@ornarelectusjusto.edu'),(36,'Karen','8-997-774-7879','urna.Nunc@eu.co.uk'),(37,'Cecilia','8-967-895-9520','amet.orci@tinciduntduiaugue.com'),(38,'Jenna','8-966-766-0016','vel.arcu.eu@a.com'),(39,'Hayley','8-952-613-3189','nascetur.ridiculus@eleifendnunc.org'),(40,'Emily','8-927-917-5397','metus.eu.erat@idmagna.com');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (41,'Rhonda','8-902-351-7163','nec@pede.net'),(42,'Kiara','8-906-202-3835','semper.rutrum.Fusce@augueacipsum.net'),(43,'Jolene','8-971-535-3189','nisi.nibh@eratVivamusnisi.net'),(44,'Aline','8-946-717-8408','sed.turpis@dictumcursusNunc.co.uk'),(45,'Austin','8-956-492-0059','a.dui.Cras@ultriciessem.org'),(46,'Jennifer','8-948-760-4712','Mauris@egestasAliquamfringilla.com'),(47,'Basia','8-966-855-6230','mollis.vitae@ametfaucibusut.net'),(48,'Salvador','8-944-629-5085','Maecenas.iaculis.aliquet@maurisaliquam.edu'),(49,'Shelby','8-960-906-3365','Donec.sollicitudin.adipiscing@tinciduntnequevitae.com'),(50,'Grace','8-989-259-7601','scelerisque.neque.Nullam@elit.org');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (51,'Aline','8-917-465-4597','risus.Donec@mi.ca'),(52,'Clinton','8-932-301-3990','Sed.eu@Duisrisusodio.com'),(53,'Calvin','8-997-659-6399','accumsan@arcuCurabitur.edu'),(54,'Yen','8-984-819-6860','lectus@quisdiam.net'),(55,'Eliana','8-990-808-0004','eget.metus@lectusNullam.org'),(56,'Yardley','8-960-470-5527','nec@necmetusfacilisis.ca'),(57,'Jerome','8-958-786-8695','dolor.tempus.non@a.co.uk'),(58,'Slade','8-909-847-1193','sed@Donecporttitortellus.edu'),(59,'Ryan','8-919-911-9967','magna@semegestasblandit.com'),(60,'Belle','8-973-406-9048','quis.arcu.vel@sit.com');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (61,'Alexa','8-918-278-1028','lectus@nonummyacfeugiat.edu'),(62,'Lesley','8-932-867-3434','elit.Etiam.laoreet@parturient.org'),(63,'Joan','8-998-589-6270','malesuada.id@a.ca'),(64,'Vladimir','8-925-360-9200','sociosqu.ad@sapienmolestieorci.com'),(65,'Gabriel','8-945-417-9590','dolor.dolor.tempus@NullafacilisiSed.ca'),(66,'Flynn','8-983-739-1685','pede@ametrisus.com'),(67,'Zia','8-943-575-6543','Nunc@laciniaSed.net'),(68,'Sara','8-962-844-5576','augue.Sed@sem.com'),(69,'Brenna','8-946-236-7960','Maecenas.mi.felis@Aliquam.edu'),(70,'Wynne','8-952-230-5699','lacus.Quisque.imperdiet@dictumPhasellusin.org');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (71,'Neville','8-934-899-2604','blandit.mattis.Cras@Phasellus.ca'),(72,'Carla','8-916-399-3872','quam@aauctornon.co.uk'),(73,'Sylvester','8-934-583-0866','aliquam.adipiscing@pedesagittis.net'),(74,'Kareem','8-905-843-9352','dictum.mi@sem.edu'),(75,'Simone','8-937-601-1952','mauris.Suspendisse.aliquet@sit.org'),(76,'Cynthia','8-976-489-1115','turpis.egestas.Fusce@metusVivamuseuismod.net'),(77,'Ria','8-991-824-4161','rhoncus@nullaIntegerurna.edu'),(78,'Herrod','8-977-834-9352','gravida.sagittis@erategetipsum.ca'),(79,'Louis','8-902-358-2588','urna.et@fermentumrisusat.edu'),(80,'Kiara','8-971-579-0053','dictum@loremipsumsodales.org');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (81,'Avye','8-908-454-9696','nulla.Integer.urna@ridiculusmus.co.uk'),(82,'Dieter','8-985-353-3482','montes.nascetur.ridiculus@Integer.co.uk'),(83,'Gray','8-932-137-6271','egestas.lacinia@nislelementum.co.uk'),(84,'Xantha','8-922-264-8360','malesuada.malesuada@vulputateeuodio.com'),(85,'Cora','8-920-286-6011','egestas.blandit@accumsan.edu'),(86,'Hanna','8-949-172-2164','enim.nec.tempus@nullaIntegerurna.edu'),(87,'Nerea','8-941-159-5764','Sed@quamquisdiam.net'),(88,'Richard','8-903-682-5710','litora.torquent.per@vellectus.net'),(89,'Alexandra','8-948-211-0204','Aliquam.fringilla.cursus@sem.edu'),(90,'Kane','8-933-958-2203','nisl.Nulla@sem.org');
-INSERT INTO "owner" ("ownerId","name","phone","email") VALUES (91,'Quon','8-925-639-7315','sed.hendrerit.a@liberoettristique.com'),(92,'Briar','8-974-978-5324','nec.mollis@Suspendisseeleifend.edu'),(93,'Alec','8-972-267-4833','massa@ornareplacerat.co.uk'),(94,'Hyatt','8-933-490-8973','fermentum@feugiat.ca'),(95,'Nola','8-966-163-3246','sapien.molestie.orci@eratnonummyultricies.net'),(96,'Jasmine','8-987-556-7308','Nunc.mauris.elit@posuere.co.uk'),(97,'Brenna','8-923-776-1226','interdum@senectusetnetus.ca'),(98,'Idona','8-904-590-1270','odio.Phasellus@necleo.edu'),(99,'Kameko','8-988-698-8428','orci.adipiscing@idmagnaet.com'),(100,'Basil','8-927-423-1146','elit.Aliquam.auctor@Maurisvestibulumneque.ca');
+INSERT INTO "user" (email,role,token,name,phone,"isBlocked","isActual",password) VALUES
+('tempus.lorem@quamelementum.co.uk','OWNER','0A1EFB8A-4B6F-2394-6C2A-1C17F516B29D','Callum','(743) 844-9616','True','False','CF85208B-01F7-20DA-5183-DC6DE611D598'),
+('malesuada.malesuada@sit.edu','OWNER','BE4D93C1-65E2-250E-906A-DC3778AE6A69','Hiram','(653) 227-0321','False','False','98A7B51C-69AC-C68B-FA20-6FF8DC515E80'),
+('Etiam.imperdiet@suscipitnonummyFusce.ca','OWNER','91D6FF09-5F5B-65F4-D485-591CF80ACFD3','Marny','(837) 470-7213','False','False','402B7345-8C08-3448-8BAB-3BD785E0CB2B'),
+('a@non.co.uk','ADMIN','08E6F825-EAD6-7892-9B0E-7F3B474C0252','Melodie','(507) 803-3720','True','False','7A25CD4F-FD87-A763-B435-91F7A986A9E7'),
+('orci@porttitoreros.com','VOLUNTEER','2BC6EE4A-BAE3-8AB6-D719-4102EE924BED','Kaseem','(236) 315-3161','False','False','EC4CEAED-F672-7480-F811-06C02EC914C9'),
+('blandit.Nam.nulla@non.net','RESPONDER','3D392436-86D2-68E9-C920-4CCDA1645EBE','Ezra','(204) 373-3325','True','True','60EE5C1B-4547-EA94-BC7B-D0D366422622'),
+('Duis@et.org','RESPONDER','0581F4EC-4F5F-D089-B63E-CCFEFE3EC649','Xander','(747) 399-9292','False','False','3EF3D604-2841-EF45-0B87-5E7FC827E264'),('Proin.mi@vestibulumnec.com','OWNER','224C331B-F361-758F-93B6-DF794E27B07E','Benedict','(713) 945-4378','False','False','39322AF9-3A35-CB57-CE30-15782C87227B'),('id.magna.et@ipsum.com','VOLUNTEER','BB65D451-413F-9ED3-0CF6-8A432F433E9E','Juliet','(218) 948-4608','True','False','07E91462-20A9-7A3C-8F52-01C90C9CA31A'),('a@Sedeu.com','VOLUNTEER','209243B3-AF75-1F73-07C2-E45133C811B2','Vladimir','(556) 669-0551','True','True','393F387E-2274-E407-2C35-75BA611691D3'),
+('luctus@nuncrisus.com','OWNER','E273BA1C-5CC5-6D69-5FC1-69776B77F1C4','Forrest','(411) 323-7015','True','True','3D276CD1-577D-C093-BCA6-22CF045A29B9'),
+('massa@risus.net','ADMIN','CBB65EE4-EA28-389C-4368-DE082ECBAEEE','Violet','(989) 324-6911','False','False','7F614302-48AE-DB63-C0FB-8DB5E5946336'),
+('arcu@porttitor.org','ADMIN','C5EC2657-23E7-C44E-EC64-6087215E24F7','Harding','(155) 748-9589','False','False','E88491D0-3392-1C07-05FD-C4D7EFEF5D3F'),
+('mi@eu.com','ADMIN','A82E477F-D8A6-A1D5-1DEA-84FDC28B7E45','Ria','(720) 771-9216','True','True','B01FDB58-D88A-C0E8-D660-B28B50C43AF6'),
+('Cum@Aliquamvulputate.ca','ADMIN','5C2F683D-D96C-FCD8-C11C-1254F7AC766C','Giselle','(872) 521-0031','False','False','9476A185-C601-9E40-BDD3-0535BCBDA4D0')
 
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (1,'Griffith','8-929-255-2244','ut@risusDonecegestas.com'),(2,'Belle','8-933-723-5770','orci@vestibulummassarutrum.co.uk'),(3,'Basil','8-907-542-7489','et@conubianostraper.net'),(4,'Isaiah','8-949-530-8701','ut.ipsum.ac@vitaenibh.co.uk'),(5,'Rebecca','8-963-768-0863','rhoncus@a.net'),(6,'Ann','8-979-517-0716','vel.sapien@consequatauctor.ca'),(7,'Jin','8-912-999-6588','Fusce.fermentum@Nunc.edu'),(8,'Kaye','8-906-987-6462','Sed.pharetra@tempor.ca'),(9,'Paul','8-966-585-8576','In.faucibus.Morbi@nibhAliquam.org'),(10,'Abraham','8-981-677-0554','ac@velitSed.com');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (11,'Logan','8-980-912-9129','eu.odio@Donec.edu'),(12,'Jena','8-985-751-0119','felis.Nulla@ornarelibero.edu'),(13,'Kim','8-911-788-2410','facilisis@et.net'),(14,'Tanisha','8-975-706-7037','Nunc.quis@pede.co.uk'),(15,'Karina','8-911-599-7477','non.bibendum.sed@mauriseuelit.net'),(16,'Cameron','8-940-680-1376','at.lacus@Sedet.co.uk'),(17,'Dacey','8-907-221-0365','pulvinar@idenim.com'),(18,'Brody','8-986-509-5963','purus.Maecenas.libero@Fuscefermentum.com'),(19,'Salvador','8-938-927-9617','congue.elit@utpharetrased.net'),(20,'Athena','8-940-802-4283','Phasellus.at.augue@velitduisemper.com');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (21,'Xena','8-961-781-5529','sit.amet@primis.co.uk'),(22,'Maris','8-932-579-1255','convallis.erat.eget@egetmassaSuspendisse.ca'),(23,'Carl','8-905-342-1775','malesuada.malesuada@condimentumDonec.org'),(24,'Levi','8-960-324-0002','Proin.sed.turpis@aenim.org'),(25,'Lyle','8-954-451-4704','Duis.dignissim.tempor@dignissimlacus.co.uk'),(26,'Solomon','8-956-659-2436','dui.in.sodales@eleifend.org'),(27,'Jonah','8-910-753-6660','tempor@elitelitfermentum.com'),(28,'Wanda','8-914-285-1598','mattis.ornare.lectus@lectusquismassa.co.uk'),(29,'Fallon','8-925-704-2356','ipsum.non@Crasdolordolor.co.uk'),(30,'Cynthia','8-910-515-4478','sit@arcu.ca');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (31,'Renee','8-983-928-5722','Proin.ultrices.Duis@Craseutellus.org'),(32,'Kato','8-934-245-6591','blandit.viverra.Donec@Mauris.ca'),(33,'Clio','8-925-761-4854','Proin.vel.nisl@diam.org'),(34,'William','8-982-800-5474','diam@estconguea.ca'),(35,'Amery','8-972-151-1006','et.magnis@PhasellusornareFusce.org'),(36,'Melyssa','8-975-278-8363','Lorem.ipsum@Suspendisse.ca'),(37,'Lani','8-904-890-9587','diam.eu.dolor@tellus.co.uk'),(38,'Sydney','8-964-914-6296','est@nibhlaciniaorci.net'),(39,'Imogene','8-941-819-1087','et.arcu@accumsanlaoreet.co.uk'),(40,'Warren','8-960-412-5271','a@accumsansedfacilisis.co.uk');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (41,'Michelle','8-926-329-2001','eu.odio@faucibusorciluctus.edu'),(42,'Olympia','8-930-397-8158','massa.Vestibulum.accumsan@sitametmetus.com'),(43,'Kenyon','8-982-306-2466','eu@morbitristiquesenectus.ca'),(44,'Drew','8-958-762-9176','luctus@Pellentesqueut.org'),(45,'Ginger','8-987-813-4702','consectetuer@ligulaNullamfeugiat.co.uk'),(46,'Amanda','8-966-632-3219','Donec.porttitor.tellus@anunc.edu'),(47,'Minerva','8-967-913-5361','fringilla@nullaIntincidunt.edu'),(48,'Beck','8-911-443-2007','diam.vel@VivamusrhoncusDonec.ca'),(49,'Tucker','8-986-137-9303','adipiscing.elit@risusNunc.ca'),(50,'Quintessa','8-911-485-7384','faucibus.Morbi.vehicula@elementumlorem.com');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (51,'Coby','8-902-837-8501','ligula.Donec.luctus@nibhdolor.net'),(52,'Martin','8-910-568-2783','per@orciluctuset.edu'),(53,'Colleen','8-984-707-6232','facilisis@lorem.org'),(54,'Nichole','8-980-334-4794','nisl.Quisque.fringilla@dignissimlacus.org'),(55,'Akeem','8-949-757-5767','litora.torquent@idante.co.uk'),(56,'Remedios','8-983-386-3146','magna.Nam.ligula@blanditcongue.com'),(57,'Alexander','8-946-572-3410','enim@lacusNulla.co.uk'),(58,'Tyrone','8-955-937-3749','sit@tortorInteger.com'),(59,'Ahmed','8-919-505-5475','ullamcorper.viverra.Maecenas@sem.co.uk'),(60,'Karyn','8-932-103-4463','varius.orci.in@duinec.co.uk');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (61,'Damian','8-948-179-7415','libero@quistristique.com'),(62,'Murphy','8-980-487-6700','eu.euismod.ac@euismodurna.ca'),(63,'Neve','8-921-875-1159','nulla.ante.iaculis@Pellentesqueultriciesdignissim.ca'),(64,'Maris','8-941-305-6491','amet.ultricies@ornareplaceratorci.com'),(65,'Paloma','8-905-191-3448','tincidunt.tempus@malesuadaaugue.ca'),(66,'Jerry','8-942-683-3954','Sed@sagittisNullamvitae.co.uk'),(67,'Mallory','8-927-474-3421','risus.Quisque.libero@rutrumFuscedolor.net'),(68,'Jonah','8-959-438-3790','et.ipsum.cursus@quislectus.ca'),(69,'Dakota','8-925-242-9414','libero@DonecegestasAliquam.co.uk'),(70,'Dakota','8-970-827-3368','sollicitudin.a@tinciduntDonec.co.uk');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (71,'Beau','8-987-432-0253','Nunc@ac.edu'),(72,'Adrienne','8-969-759-1518','nibh.Donec@scelerisquenequeNullam.co.uk'),(73,'Gage','8-949-524-9087','at@quamdignissim.org'),(74,'Rafael','8-911-901-4877','adipiscing@elit.com'),(75,'Fiona','8-995-555-9684','enim.Curabitur.massa@tellusSuspendisse.edu'),(76,'Baker','8-955-903-8076','consectetuer.rhoncus@aliquetmolestie.co.uk'),(77,'Caldwell','8-959-169-2892','tristique.pharetra@magna.co.uk'),(78,'Cynthia','8-967-449-9029','quam@velitPellentesque.co.uk'),(79,'Kenyon','8-958-774-5031','adipiscing.elit.Etiam@placerateget.ca'),(80,'Adam','8-911-747-9245','lorem@Duismi.ca');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (81,'Benjamin','8-966-439-9023','elit.pharetra.ut@eunibhvulputate.org'),(82,'Ignatius','8-932-179-5487','cursus.purus.Nullam@idnunc.edu'),(83,'Oliver','8-900-200-0374','enim@mi.ca'),(84,'Carla','8-948-570-5123','convallis.est@iaculisquispede.org'),(85,'Bo','8-910-537-9602','interdum.libero.dui@Sednec.net'),(86,'Alana','8-978-945-2994','orci.adipiscing.non@elementumduiquis.co.uk'),(87,'Whoopi','8-925-333-1443','velit.Pellentesque@libero.org'),(88,'Lynn','8-968-691-5456','sed.hendrerit.a@Loremipsumdolor.org'),(89,'Vance','8-963-478-8236','tellus.lorem@Duismi.com'),(90,'Sloane','8-962-206-7568','ipsum@egestasa.co.uk');
-INSERT INTO "finder" ("finderId","name","phone","email") VALUES (91,'Jillian','8-934-593-8678','egestas.urna@nasceturridiculusmus.ca'),(92,'Isaiah','8-977-222-9176','id.magna@malesuadaaugue.edu'),(93,'Micah','8-971-370-7378','urna.et.arcu@venenatisvelfaucibus.ca'),(94,'Xenos','8-981-108-7361','sagittis.augue@Integereulacus.com'),(95,'Yvonne','8-912-350-3851','mauris.Integer.sem@diam.co.uk'),(96,'Hashim','8-970-644-7028','sit.amet@hendrerit.ca'),(97,'Leroy','8-959-294-9534','amet.diam.eu@feugiat.org'),(98,'Nathaniel','8-982-429-8341','Sed.nec.metus@augueporttitorinterdum.ca'),(99,'Roary','8-919-120-6052','cursus.non.egestas@molestiedapibus.com'),(100,'Zeus','8-907-493-9677','id.nunc.interdum@tempordiam.ca');
 
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (1,1,'Solomon','Vivamus sit amet risus. Donec egestas. Aliquam','BMG30TQC5JU',1),(2,2,'Zephr','diam luctus lobortis. Class aptent taciti sociosqu','EDS90UMB9VN',1),(3,3,'Zane','amet ornare lectus justo eu arcu. Morbi','SCG46DOD3PM',1),(4,4,'Cole','in felis. Nulla tempor augue ac ipsum.','RCP76AMA4JS',1),(5,5,'Ella','leo, in lobortis tellus justo sit amet','INA52USD8DK',1),(6,6,'Xenos','Donec elementum, lorem ut aliquam iaculis, lacus','YGR49DNL4RG',1),(7,7,'Jacob','Phasellus at augue id ante dictum cursus.','JUM49ZXY8RU',1),(8,8,'Dorian','sapien, cursus in, hendrerit consectetuer, cursus et,','HXU37HXI1UQ',1),(9,9,'Xaviera','dictum sapien. Aenean massa. Integer vitae nibh.','XZB88SXG1AL',1),(10,10,'Halla','ullamcorper, nisl arcu iaculis enim, sit amet','LQE20IYK7IK',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (11,11,'Zahir','molestie pharetra nibh. Aliquam ornare, libero at','NIP70EEL5XK',1),(12,12,'Mara','bibendum fermentum metus. Aenean sed pede nec','MDN57VXZ3ED',1),(13,13,'Erasmus','vehicula risus. Nulla eget metus eu erat','ZCZ65HMS9HX',1),(14,14,'Graiden','tellus faucibus leo, in lobortis tellus justo','SLY86PPN2VC',1),(15,15,'Willow','Pellentesque ut ipsum ac mi eleifend egestas.','WTR77ZOI7FA',1),(16,16,'Natalie','fermentum fermentum arcu. Vestibulum ante ipsum primis','HMW28SLF5YN',1),(17,17,'Megan','magna. Duis dignissim tempor arcu. Vestibulum ut','EZZ66YCH5WZ',1),(18,18,'Tanya','ullamcorper magna. Sed eu eros. Nam consequat','AXZ74ZAO7YG',1),(19,19,'Samuel','Quisque varius. Nam porttitor scelerisque neque. Nullam','XMA00HKG6OX',1),(20,20,'Hamish','ut, pharetra sed, hendrerit a, arcu. Sed','YHZ01RGJ9NN',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (21,21,'Evangeline','dictum eu, eleifend nec, malesuada ut, sem.','NLJ97MEM2HG',1),(22,22,'Mollie','montes, nascetur ridiculus mus. Donec dignissim magna','RMS11BUR0JE',1),(23,23,'Xavier','sodales. Mauris blandit enim consequat purus. Maecenas','CUZ41ZOZ9AP',1),(24,24,'Felix','aliquam iaculis, lacus pede sagittis augue, eu','YQR22SCE0AV',1),(25,25,'Melvin','nisi dictum augue malesuada malesuada. Integer id','WID94LVZ2VV',1),(26,26,'Shaine','in, cursus et, eros. Proin ultrices. Duis','RPS07SDQ2ZT',1),(27,27,'Daniel','consectetuer mauris id sapien. Cras dolor dolor,','RDD64ASR1JK',1),(28,28,'Brody','et netus et malesuada fames ac turpis','GGW29TYO3CA',1),(29,29,'Cruz','vulputate, nisi sem semper erat, in consectetuer','ZSL97EWN9JI',1),(30,30,'Noble','amet ornare lectus justo eu arcu. Morbi','IRH11NFC0PL',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (31,31,'Basia','hendrerit. Donec porttitor tellus non magna. Nam','XAF15IUK6VA',1),(32,32,'Maxwell','enim, sit amet ornare lectus justo eu','DJH29ZEV1SE',1),(33,33,'Micah','sed sem egestas blandit. Nam nulla magna,','BSV48RRV1OX',1),(34,34,'David','Mauris blandit enim consequat purus. Maecenas libero','STE95SIH7EG',1),(35,35,'Hedwig','gravida non, sollicitudin a, malesuada id, erat.','OUE76VYX5DV',1),(36,36,'Macaulay','sagittis. Nullam vitae diam. Proin dolor. Nulla','VYO51ZQE7ZF',1),(37,37,'Norman','pede ac urna. Ut tincidunt vehicula risus.','HIH98RAU2NA',1),(38,38,'Lyle','porttitor scelerisque neque. Nullam nisl. Maecenas malesuada','DSY50XJE7LH',1),(39,39,'Nigel','nascetur ridiculus mus. Proin vel arcu eu','XSH94CJG9TK',1),(40,40,'Wynne','lobortis tellus justo sit amet nulla. Donec','GSO62RBB8KT',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (41,41,'Taylor','nisi sem semper erat, in consectetuer ipsum','CKF06QXS6CZ',1),(42,42,'Louis','Aliquam rutrum lorem ac risus. Morbi metus.','FZQ61IGA8DR',1),(43,43,'Beatrice','vehicula et, rutrum eu, ultrices sit amet,','WBN60STA0PU',1),(44,44,'Marcia','sem ut dolor dapibus gravida. Aliquam tincidunt,','GNA04MTJ3HB',1),(45,45,'Olympia','mus. Proin vel nisl. Quisque fringilla euismod','JOS64QBJ9JV',1),(46,46,'Xavier','ipsum. Suspendisse non leo. Vivamus nibh dolor,','UHI54UXV7YS',1),(47,47,'Emi','risus. Quisque libero lacus, varius et, euismod','FZU48RXJ4RJ',1),(48,48,'Porter','Pellentesque ultricies dignissim lacus. Aliquam rutrum lorem','EYR18YIE7RS',1),(49,49,'Wanda','fermentum arcu. Vestibulum ante ipsum primis in','UZZ48DQG1NP',1),(50,50,'Jane','nec tempus scelerisque, lorem ipsum sodales purus,','SOL78JXD1WJ',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (51,51,'Marah','pellentesque, tellus sem mollis dui, in sodales','IGC87SAW5TX',1),(52,52,'Kevin','et, euismod et, commodo at, libero. Morbi','EQZ01MWV8KY',1),(53,53,'Jayme','metus eu erat semper rutrum. Fusce dolor','MOI98SDO7ZK',1),(54,54,'Zena','arcu. Morbi sit amet massa. Quisque porttitor','YUN19HGJ6YV',1),(55,55,'Otto','Fusce feugiat. Lorem ipsum dolor sit amet,','SOV59NTP4IH',1),(56,56,'Jonah','non lorem vitae odio sagittis semper. Nam','KNX43KQT3DV',1),(57,57,'Judah','dolor. Fusce mi lorem, vehicula et, rutrum','LVI43BMI6YO',1),(58,58,'Renee','id ante dictum cursus. Nunc mauris elit,','HYT22XKE3KV',1),(59,59,'Sybil','ut, pharetra sed, hendrerit a, arcu. Sed','YFO07KRG2DL',1),(60,60,'Chancellor','pharetra sed, hendrerit a, arcu. Sed et','TGJ80ZBG8MW',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (61,61,'Althea','Nulla facilisi. Sed neque. Sed eget lacus.','SRU84ZBT5AR',1),(62,62,'Travis','feugiat metus sit amet ante. Vivamus non','YUJ60OCN6VZ',1),(63,63,'Hilda','arcu. Vestibulum ante ipsum primis in faucibus','VTV05RWG9FX',1),(64,64,'Thaddeus','risus. Duis a mi fringilla mi lacinia','JSV56VXD2OF',1),(65,65,'Oscar','mauris sit amet lorem semper auctor. Mauris','VGP56PPA8IF',1),(66,66,'Sebastian','elementum purus, accumsan interdum libero dui nec','SII94ZJJ7JB',1),(67,67,'Jordan','Integer urna. Vivamus molestie dapibus ligula. Aliquam','GPO51RNF3KV',1),(68,68,'Vance','dis parturient montes, nascetur ridiculus mus. Aenean','RGD56DHV3DH',1),(69,69,'Rashad','arcu eu odio tristique pharetra. Quisque ac','YYV12AWI8VU',1),(70,70,'Brent','augue scelerisque mollis. Phasellus libero mauris, aliquam','RKU74NSW4WA',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (71,71,'Elton','sit amet, consectetuer adipiscing elit. Curabitur sed','TKM17EUK1XP',1),(72,72,'Brody','ligula consectetuer rhoncus. Nullam velit dui, semper','MQX48QIZ1BY',1),(73,73,'Vielka','vulputate eu, odio. Phasellus at augue id','WXR19GGA6IZ',1),(74,74,'Alexis','blandit viverra. Donec tempus, lorem fringilla ornare','TCM49IAH2AE',1),(75,75,'Nigel','lorem lorem, luctus ut, pellentesque eget, dictum','EZR69FCI8UP',1),(76,76,'Cecilia','molestie pharetra nibh. Aliquam ornare, libero at','BET94PMO6JC',1),(77,77,'April','eget odio. Aliquam vulputate ullamcorper magna. Sed','EHO49XOS6RV',1),(78,78,'Karly','scelerisque, lorem ipsum sodales purus, in molestie','TPC36EOA0RM',1),(79,79,'Yoshio','diam. Proin dolor. Nulla semper tellus id','FMU21QPR7MO',1),(80,80,'Cecilia','scelerisque dui. Suspendisse ac metus vitae velit','LYQ58AER1CJ',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (81,81,'Finn','nisi. Aenean eget metus. In nec orci.','FLI17KUF4MJ',1),(82,82,'Genevieve','dolor sit amet, consectetuer adipiscing elit. Curabitur','EAU92NDF8EV',1),(83,83,'Jason','Phasellus ornare. Fusce mollis. Duis sit amet','WLP07WGY9RD',1),(84,84,'Adara','metus urna convallis erat, eget tincidunt dui','AKL41TXB6DO',1),(85,85,'Kyle','pulvinar arcu et pede. Nunc sed orci','HHV62HSO6CX',1),(86,86,'Jescie','sed, facilisis vitae, orci. Phasellus dapibus quam','SFU39CAL6KM',1),(87,87,'Maile','Fusce dolor quam, elementum at, egestas a,','EUR63RHP7VD',1),(88,88,'Kaye','sit amet nulla. Donec non justo. Proin','OWD79LLW3MB',1),(89,89,'Barry','Phasellus in felis. Nulla tempor augue ac','UFT90LEX2JE',1),(90,90,'Tashya','commodo tincidunt nibh. Phasellus nulla. Integer vulputate,','LZC82CMJ8CC',1);
-INSERT INTO "losty" ("lostyId","ownerId","name","description","photo","category") VALUES (91,91,'Cullen','eu tellus. Phasellus elit pede, malesuada vel,','REX47MQT4IL',1),(92,92,'Kaye','Integer sem elit, pharetra ut, pharetra sed,','EEX43RPJ5PS',1),(93,93,'Eric','purus gravida sagittis. Duis gravida. Praesent eu','OAE62ESC2BU',1),(94,94,'Sylvia','ullamcorper. Duis cursus, diam at pretium aliquet,','UTV14PPA6CI',1),(95,95,'Clio','faucibus orci luctus et ultrices posuere cubilia','UUJ92BBU4AB',1),(96,96,'Wilma','senectus et netus et malesuada fames ac','DKC38QKL9MG',1),(97,97,'Whitney','vel pede blandit congue. In scelerisque scelerisque','PXE58MBZ6BQ',1),(98,98,'William','aliquet magna a neque. Nullam ut nisi','NUK96REQ2PM',1),(99,99,'Tobias','eu, euismod ac, fermentum vel, mauris. Integer','WQU18FBF2PM',1),(100,100,'Brittany','placerat velit. Quisque varius. Nam porttitor scelerisque','JAY79KIM3XD',1);
 
---запросы на выборку данных
 
-select * from payment where ("isPaid" = true) and ("sum" between 13 and 45);
-select distinct "isPaid", "name" from "payment", "responder" where ("isPaid" = false) and ("name" like '%a');
-select distinct losty.name, owner.email from "losty", "owner" where (length (losty.name) < 4) and (owner.phone like '8-97%');
-select "name" from "finder" union select "name" from "owner" order by "name";
-select "phone", "email" from "owner" union select "phone", "email" from "responder";
-select "sum", "method" from "payment" union select "advId", "title" from "adv" group by "advId";
-select "isPaid", sum("sum") from payment group by "isPaid";
-with "responders" as (select * from "responder" where "respId" > 5) select "phone", "email" from "responders";
-with ids as (select "ownerId", "finderId" from owner, finder where owner.name like '%a' and finder.name like '%e')
-select foundy.name, length(foundy.description), losty.name, length(losty.description) from losty, foundy, ids
-where losty."ownerId" = ids."ownerId" and foundy."finderId" = ids."finderId" group by losty.name, length(foundy.description), foundy.name, length(losty.description);
