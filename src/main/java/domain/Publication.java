@@ -38,4 +38,13 @@ public class Publication extends AbstractEntity {
         else
             state = PublicationState.CONFIRM_WAIT;
     }
+
+    public boolean hasId(long id) {
+        return this.id == id;
+    }
+
+    public boolean hasState(PublicationState state) {
+        return this.state.equals(state);
+    }
+
 }
