@@ -1,4 +1,3 @@
-import domain.Extra;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +40,7 @@ public class SqlExecutorTest {
 
 
     @Test
-    public void shouldCreateSqlExecutor() {
+    public void shouldCreateSqlExecutor() throws SQLException {
         SqlExecutor executor = new SqlExecutor(connection);
 
         soft.assertThat(executor).hasNoNullFieldsOrProperties();
@@ -71,7 +70,7 @@ public class SqlExecutorTest {
     public void shouldExecuteGetValuesQuery() throws SQLException {
         String insertQuery = "select * from actor";
 
-        Map<String, String> actors = executor.getValuesQuery(insertQuery).get(0);
+        Map<String, String> actors = executor.getNonDeleted(insertQuery).get(0);
 
         soft.assertThat(actors).hasFieldOrProperty("email");
     }

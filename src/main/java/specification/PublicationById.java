@@ -1,11 +1,9 @@
 package specification;
 
+import domain.AbstractEntity;
 import domain.Publication;
-import repo.Repo;
 
-import java.sql.SQLException;
-
-public class PublicationById implements Specification<Publication> {
+public class PublicationById extends AbstractEntity implements Specification<Publication> {
 
     private final long id;
 
@@ -14,8 +12,13 @@ public class PublicationById implements Specification<Publication> {
     }
 
     @Override
-    public boolean specified(Repo<Publication> repository) {
-        return repository.hasId(id);
+    public boolean isSatisfiedBy(Publication publication) {
+        return id == publication.id;
+    }
+
+    @Override
+    public String toSqlClauses() {
+        return String.format("select * from publication where id = %d", id);
     }
 
 }

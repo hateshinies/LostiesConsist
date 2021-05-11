@@ -7,21 +7,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractEntity {
-    private Map<String, String> cargo = new HashMap<>();
+    private final Map<String, String> cargo = new HashMap<>();
     public SqlCreator queries;
 
-    public void setCargo(Map<String, String> cargo) {
-        this.cargo = cargo;
-    }
-
-    public Map<String, String> getCargo(){
-        return cargo;
+    public SqlCreator getQueries() {
+        return queries;
     }
 
     /**
      * Кладет в мапу cargo все поля и значения объекта
      */
-    public void pack() throws IllegalAccessException {
+    public Map<String, String> pack() throws IllegalAccessException {
         Class<?> clazz = this.getClass();
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
@@ -35,15 +31,19 @@ public abstract class AbstractEntity {
         entityName = "\"" + new String(letters) + "\"";
         cargo.put("entityName", entityName);
         queries = new SqlCreator(cargo);
+        return cargo;
     }
 
     /**
      * Возвращает экземпляр класса, построенного из мапы cargo
      */
-    public Object unpack(Class<?> clazz) throws Exception {
-        Field[] fields = clazz.getDeclaredFields();
-        Object classInstance = clazz.getConstructor().newInstance();
-
+    public Object unpack(Map<String, String> cargo) throws Exception {
+//        Field[] fields = clazz.getDeclaredFields();
+        Field[] fields = this.getClass().getDeclaredFields();
+//        Field[] fields = this.getClass().getDeclaredFields();
+        Object classInstance = this.getClass().getConstructor().newInstance();
+        cargo.remove("version");
+        cargo.remove("isDeleted");
         for (Map.Entry<String, String> entry : cargo.entrySet()) {
             for (Field field : fields) {
                 String fieldName = field.getName();

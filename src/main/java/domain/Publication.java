@@ -4,7 +4,7 @@ package domain;
  * Класс Публикация - это "карточка" с информацией(текст, изображение, состояние, время создания)
  */
 public class Publication extends AbstractEntity {
-    long id;
+    public long id;
     String description;
     String photo;
     public Actor actor;

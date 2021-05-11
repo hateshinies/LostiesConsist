@@ -92,7 +92,7 @@ public class SqlCreatorTest {
         cargo.put("email", email);
         SqlCreator creator = new SqlCreator(cargo);
 
-        Map<String, String> object = executor.getValuesQuery(creator.getOneQuery).get(0);
+        Map<String, String> object = executor.getNonDeleted(creator.getOneQuery).get(0);
 
         soft.assertThat(object.get("email")).isEqualTo(email);
     }
@@ -103,7 +103,7 @@ public class SqlCreatorTest {
         cargo.put("entityName", "Actor");
         SqlCreator creator = new SqlCreator(cargo);
 
-        List<Map<String, String>> objects = executor.getValuesQuery(creator.getAllQuery);
+        List<Map<String, String>> objects = executor.getNonDeleted(creator.getAllQuery);
 
         soft.assertThat(objects).isNotEmpty();
     }

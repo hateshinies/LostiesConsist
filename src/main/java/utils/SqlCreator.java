@@ -12,8 +12,11 @@ public class SqlCreator {
     public String createQuery;
     public String updateQuery;
     public String deleteQuery;
+    public String softDeleteQuery;
     public String getOneQuery;
     public String getAllQuery;
+    public String findBySpecification;
+    public String getLock;
 
     public SqlCreator(Map<String, String> map) {
         prepareQueries(map);
@@ -26,73 +29,98 @@ public class SqlCreator {
         createQuery = prepareCreateQuery(map);
         updateQuery = prepareUpdateQuery(map);
         deleteQuery = prepareDeleteQuery(map);
+        softDeleteQuery = prepareSoftDeleteQuery(map);
         getOneQuery = prepareGetOneQuery(map);
         getAllQuery = prepareGetAllQuery();
+        getLock = prepareLock(map);
     }
 
     private String prepareCreateQuery(Map<String, String> map) {
-        String createStartQuery = "insert into %s (";
-        String createMiddleQuery = ") values (";
-        String createEndQuery = ")";
+        String startQuery = "insert into %s (";
+        String middleQuery = ") values (";
+        String endQuery = ")";
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
             //тут ID еще не должно быть в мапе
             if (entry.getKey().equals("id"))
                 continue;
-            createStartQuery = createStartQuery + "\"" + entry.getKey() + "\",";
-            createMiddleQuery = createMiddleQuery + "'" + entry.getValue() + "',";
+            startQuery = startQuery + "\"" + entry.getKey() + "\",";
+            middleQuery = middleQuery + "'" + entry.getValue() + "',";
         }
 
-        String preparedQuery = createStartQuery.replaceAll(".$", "") +
-                createMiddleQuery.replaceAll(".$", "") +
-                createEndQuery;
+        String preparedQuery = startQuery.replaceAll(".$", "") +
+                middleQuery.replaceAll(".$", "") +
+                endQuery;
 
         return String.format(preparedQuery, entityName);
     }
 
     private String prepareUpdateQuery(Map<String, String> map) {
-        String updateStart = "update %s set ";
-        String updateEnd = " where \"id\" = ";
+        String startQuery = "update %s set ";
+        String endQuery = " where \"id\" = ";
 
         for (Map.Entry<String, String> entry : map.entrySet()) {
             if (entry.getKey().contains("id"))
-                updateEnd += entry.getValue();
+                endQuery += entry.getValue();
             else if (entry.getKey().contains("email") && !map.containsKey("id"))
-                updateEnd = updateEnd.replace("\"id\"", "\"email\"") + "'" + entry.getValue() + "'";
+                endQuery = endQuery.replace("\"id\"", "\"email\"") + "'" + entry.getValue() + "'";
             else
-                updateStart = updateStart + "\"" + entry.getKey() + "\" = '" + entry.getValue() + "',";
+                startQuery = startQuery + "\"" + entry.getKey() + "\" = '" + entry.getValue() + "',";
         }
-        String preparedQuery = updateStart.replaceAll(".$", "") + updateEnd;
+        String preparedQuery = startQuery.replaceAll(".$", "") + endQuery;
         return String.format(preparedQuery, entityName);
 
     }
 
     private String prepareDeleteQuery(Map<String, String> map) {
-        String deleteQuery = "delete from %s where \"id\" = ";
+        String query = "delete from %s where \"id\" = ";
         if (map.containsKey("id"))
-            deleteQuery = deleteQuery + "'" + map.get("id") + "'";
+            query = query + "'" + map.get("id") + "'";
         else if (map.containsKey("email"))
-            deleteQuery = deleteQuery.replace("\"id\"", "\"email\"") + "'" + map.get("email") + "'";
+            query = query.replace("\"id\"", "\"email\"") + "'" + map.get("email") + "'";
         else
 //            throw new IllegalStateException("pk not found");
             return null;
-        return String.format(deleteQuery, entityName);
+        return String.format(query, entityName);
     }
 
     private String prepareGetOneQuery(Map<String, String> map) {
-        String getOneQuery = "select * from %s where \"id\" = ";
+        String query = "select * from %s where \"id\" = ";
         if (map.containsKey("id"))
-            getOneQuery += map.get("id");
+            query += map.get("id");
         else if (map.containsKey("email"))
-            getOneQuery = getOneQuery.replace("\"id\"", "\"email\"") + "'" + map.get("email") + "'";
+            query = query.replace("\"id\"", "\"email\"") + "'" + map.get("email") + "'";
         else
 //            throw new IllegalStateException("pk not found");
             return null;
-        return String.format(getOneQuery, entityName);
+        return String.format(query, entityName);
+    }
+
+    private String prepareSoftDeleteQuery(Map<String, String> map) {
+        String query = "update %s set isDeleted = true where \"id\" = ";
+        if (map.containsKey("id"))
+            query += map.get("id");
+        else if (map.containsKey("email"))
+            query = query.replace("\"id\"", "\"email\"") + "'" + map.get("email") + "'";
+        else
+//            throw new IllegalStateException("pk not found");
+            return null;
+        return String.format(query, entityName);
     }
 
     private String prepareGetAllQuery() {
         String getAllQuery = "select * from %s";
         return String.format(getAllQuery, entityName);
+    }
+
+    public void findBy(String entity, String expression) {
+        String startQuery = "select * from ";
+        String middleQuery = " where ";
+        findBySpecification = startQuery + entity + middleQuery + expression;
+    }
+
+    private String prepareLock(Map<String, String> map) {
+        String query = "select \"value\" from %s where \"id\" = ";
+        return String.format(query, map.get("entity")) + map.get("id");
     }
 }
